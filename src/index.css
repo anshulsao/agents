@@ -63,4 +63,8 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent;
+  }
 }

@@ -12,9 +12,10 @@ interface ChatWindowProps {
   onRespond: (id: string, confirmed: boolean) => void;
   currentAgent: AgentDetail | null;
   onSendMessage: (message: string) => void;
+  kubeReady: boolean;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onRespond, currentAgent, onSendMessage }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onRespond, currentAgent, onSendMessage, kubeReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages or confirmations
@@ -39,6 +40,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onResp
                   <StartingPrompts 
                     agent={currentAgent} 
                     onPromptSelect={onSendMessage}
+                    kubeReady={kubeReady}
                   />
                 ) : (
                   <div className="text-center max-w-md mx-auto">

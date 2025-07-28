@@ -150,6 +150,7 @@ const App: React.FC = () => {
           onRespond={respondConfirmation}
           currentAgent={currentAgent}
           onSendMessage={sendMessage}
+          kubeReady={kubeReady}
         />
         
         {showInspectPanel && (
