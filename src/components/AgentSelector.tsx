@@ -1,18 +1,19 @@
 import React from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { ChevronsUpDownIcon as ChevronUpDownIcon, CheckIcon, Bot, Loader2 } from 'lucide-react';
+import type { AgentDetail } from '../hooks/useAgents';
 
 interface AgentSelectorProps {
-  agents: string[];
+  agents: AgentDetail[];
   loading: boolean;
-  selected: string | null;
-  onChange: (agent: string) => void;
+  selected: AgentDetail | null;
+  onChange: (agent: AgentDetail) => void;
 }
 
 const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected, onChange }) => {
   return (
     <div className="w-56">
-      <Listbox value={selected || ''} onChange={onChange} disabled={loading}>
+      <Listbox value={selected} onChange={onChange} disabled={loading}>
         <div className="relative">
           <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-surface hover:bg-surface-hover border border-border py-2 pl-3 pr-8 text-left text-text-primary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent disabled:opacity-50">
             <div className="flex items-center gap-2">
@@ -22,7 +23,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected
                 <Bot className="h-3.5 w-3.5 text-accent" />
               )}
               <span className="block truncate text-sm font-medium">
-                {loading ? 'Loading agents...' : selected || 'Select Agent'}
+                {loading ? 'Loading agents...' : selected?.name || 'Select Agent'}
               </span>
             </div>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -39,7 +40,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected
             <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface border border-border shadow-strong py-1 text-base focus:outline-none">
               {agents.map((agent) => (
                 <Listbox.Option
-                  key={agent}
+                  key={agent.name}
                   value={agent}
                   className={({ active }) =>
                     `relative cursor-pointer select-none py-2 pl-8 pr-4 transition-colors duration-150 ${
@@ -52,7 +53,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected
                       <div className="flex items-center gap-2">
                         <Bot className="h-3.5 w-3.5 text-accent" />
                         <span className={`block truncate text-sm ${isSelected ? 'font-semibold text-text-primary' : 'font-normal'}`}>
-                          {agent}
+                          {agent.name}
                         </span>
                       </div>
                       {isSelected && (

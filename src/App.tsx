@@ -149,6 +149,7 @@ const App: React.FC = () => {
           confirmations={confirmations}
           onRespond={respondConfirmation}
           currentAgent={currentAgent}
+          onSendMessage={sendMessage}
         />
         
         {showInspectPanel && (

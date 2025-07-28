@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import type { AgentDetail } from './useAgents';
 
 export type Message = {
   id: string;
@@ -14,7 +15,7 @@ type Confirmation = { id: string; command: string };
 
 
 export function useChatSession() {
-  const [currentAgent, setCurrentAgent] = useState<string | null>(null);
+  const [currentAgent, setCurrentAgent] = useState<AgentDetail | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [packets, setPackets] = useState<any[]>([]);
@@ -28,7 +29,7 @@ export function useChatSession() {
   const ws = useRef<WebSocket | null>(null);
   const streamingIndex = useRef<number | null>(null);
   const toolGroupIndex = useRef<number | null>(null);
-  const agentRef = useRef<string | null>(null);
+  const agentRef = useRef<AgentDetail | null>(null);
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const maxReconnectAttempts = 5;
@@ -48,7 +49,7 @@ export function useChatSession() {
             agentInitArgs[key] = value;
           });
           
-          const requestBody: any = { agent_name: currentAgent };
+          const requestBody: any = { agent_name: currentAgent.name };
           if (Object.keys(agentInitArgs).length > 0) {
             requestBody.agent_init_args = agentInitArgs;
           }
@@ -108,7 +109,7 @@ export function useChatSession() {
     }
   };
 
-  const attemptReconnect = (sid: string, agentName: string) => {
+  const attemptReconnect = (sid: string, agent: AgentDetail) => {
     if (reconnectAttempts >= maxReconnectAttempts) {
       updateStatus('Connection failed - maximum retry attempts reached', true);
       setReconnectAttempts(0);
@@ -119,7 +120,7 @@ export function useChatSession() {
     updateStatus(`Reconnecting... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
 
     reconnectTimerRef.current = setTimeout(() => {
-      connectWebSocket(sid, agentName, null);
+      connectWebSocket(sid, agent, null);
     }, reconnectDelay * Math.pow(1.5, reconnectAttempts)); // Exponential backoff
   };
 
@@ -190,7 +191,7 @@ export function useChatSession() {
     }
   };
 
-  const selectAgent = (agent: string) => {
+  const selectAgent = (agent: AgentDetail) => {
     setCurrentAgent(agent);
     agentRef.current = agent;
     setSessionId(null);
@@ -219,14 +220,14 @@ export function useChatSession() {
     }
   };
 
-  const connectWebSocket = (sid: string, agentName: string, initialMessage: string | null) => {
-    agentRef.current = agentName;
+  const connectWebSocket = (sid: string, agent: AgentDetail, initialMessage: string | null) => {
+    agentRef.current = agent;
     
     let url: string;
 
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
       const host = window.location.host;
-      url = `${protocol}://${host}/ai-api/chat/ws/${sid}?agent_name=${encodeURIComponent(agentName)}`;
+      url = `${protocol}://${host}/ai-api/chat/ws/${sid}?agent_name=${encodeURIComponent(agent.name)}`;
 
     
     try {
@@ -322,8 +323,13 @@ export function useChatSession() {
             
             case 'agent_update':
               updateStatus(`Switched to ${data.payload.agent_name}`, true);
-              setCurrentAgent(data.payload.agent_name);
-              agentRef.current = data.payload.agent_name;
+              // Note: This would need to be updated to handle full agent objects
+              // For now, just update the name in the current agent
+              if (agentRef.current) {
+                const updatedAgent = { ...agentRef.current, name: data.payload.agent_name };
+                setCurrentAgent(updatedAgent);
+                agentRef.current = updatedAgent;
+              }
               break;
               
             case 'confirmation_request': {
@@ -363,9 +369,9 @@ export function useChatSession() {
         setIsBusy(false);
         clearStatus();
         
-        // Only attempt reconnection if it wasn't a normal closure and we have a session
-        if (ev.code !== 1000 && ev.code !== 1001 && sessionId && agentName) {
-          attemptReconnect(sessionId, agentName);
+        // Only attempt reconnection if it wasn't a normal closure and we have a session  
+        if (ev.code !== 1000 && ev.code !== 1001 && sessionId && agent) {
+          attemptReconnect(sessionId, agent);
         }
       };
       
