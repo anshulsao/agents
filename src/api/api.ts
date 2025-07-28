@@ -1,14 +1,7 @@
 // API utility functions for kubeconfig upload and status
-import { mockUploadKubeconfig, mockGetKubeconfigStatus, mockSetKubeconfigStatus } from '../mocks/mockApi';
 
-const isDev = false;
 
 export async function uploadKubeconfig(sessionId: string, file: File): Promise<void> {
-  if (isDev) {
-    await mockUploadKubeconfig(sessionId, file);
-    mockSetKubeconfigStatus(sessionId, true);
-    return;
-  }
 
   const formData = new FormData();
   formData.append('session_id', sessionId);
@@ -26,9 +19,6 @@ export async function uploadKubeconfig(sessionId: string, file: File): Promise<v
 }
 
 export async function getKubeconfigStatus(sessionId: string): Promise<boolean> {
-  if (isDev) {
-    return mockGetKubeconfigStatus(sessionId);
-  }
 
   const res = await fetch(`/ai-api/kubeconfig/status?session_id=${encodeURIComponent(sessionId)}`);
   if (!res.ok) {

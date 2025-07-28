@@ -12,7 +12,6 @@ export type Message = {
 
 type Confirmation = { id: string; command: string };
 
-const isDev = false;
 
 export function useChatSession() {
   const [currentAgent, setCurrentAgent] = useState<string | null>(null);
@@ -40,12 +39,7 @@ export function useChatSession() {
     const createSession = async () => {
       if (currentAgent && !sessionId) {
         try {
-          if (isDev) {
-            // Create mock session ID in development
-            const mockSessionId = `mock-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            setSessionId(mockSessionId);
-            return;
-          }
+
 
           // Get all query params as a dictionary
           const urlParams = new URLSearchParams(window.location.search);
@@ -229,14 +223,11 @@ export function useChatSession() {
     agentRef.current = agentName;
     
     let url: string;
-    if (isDev) {
-      // Use mock WebSocket URL in development
-      url = `ws://localhost:3000/mock-ws/${sid}?agent_name=${encodeURIComponent(agentName)}`;
-    } else {
+
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
       const host = window.location.host;
       url = `${protocol}://${host}/ai-api/chat/ws/${sid}?agent_name=${encodeURIComponent(agentName)}`;
-    }
+
     
     try {
       const socket = new WebSocket(url);
