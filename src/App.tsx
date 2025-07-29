@@ -63,9 +63,9 @@ const App: React.FC = () => {
   // Add hotkey listener for Cmd+Shift+S
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'S') {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'i') {
         event.preventDefault();
-        console.log('Hotkey triggered: Cmd+Shift+S');
+        console.log('Hotkey triggered: Ctrl+I (or Cmd+I)');
         setShowInspectPanel(prev => !prev);
       }
     };
