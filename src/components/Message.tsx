@@ -35,7 +35,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
       const html = marked.parse(content);
       return (
         <div 
-          className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-headings:text-text-primary prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary text-sm leading-relaxed"
+          className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-h1:text-xl prose-h1:font-bold prose-h1:text-text-primary prose-h1:mb-4 prose-h2:text-lg prose-h2:font-semibold prose-h2:text-text-primary prose-h2:mb-3 prose-h3:text-base prose-h3:font-medium prose-h3:text-text-primary prose-h3:mb-2 prose-h4:text-sm prose-h4:font-medium prose-h4:text-text-secondary prose-h4:mb-2 prose-h5:text-sm prose-h5:font-normal prose-h5:text-text-secondary prose-h5:mb-1 prose-h6:text-xs prose-h6:font-normal prose-h6:text-text-tertiary prose-h6:mb-1 prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary text-sm leading-relaxed"
           dangerouslySetInnerHTML={{ __html: html }} 
         />
       );
