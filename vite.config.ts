@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     // Disable Vite's own WebSocket handling to prevent conflicts
-    hmr: false,
+    hmr: true,
     proxy: {
       '/ai-api': {
         target: 'https://facetsdemo.console.facets.cloud',
