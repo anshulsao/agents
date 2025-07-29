@@ -12,17 +12,17 @@ interface AgentSelectorProps {
 
 const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected, onChange }) => {
   return (
-    <div className="w-56">
+    <div className="w-full sm:w-56">
       <Listbox value={selected} onChange={onChange} disabled={loading}>
         <div className="relative">
-          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-surface hover:bg-surface-hover border border-border py-2 pl-3 pr-8 text-left text-text-primary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent disabled:opacity-50">
+          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-surface hover:bg-surface-hover border border-border py-2 pl-3 pr-8 text-left text-text-primary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent disabled:opacity-50 min-w-0">
             <div className="flex items-center gap-2">
               {loading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin text-text-tertiary" />
               ) : (
                 <Bot className="h-3.5 w-3.5 text-accent" />
               )}
-              <span className="block truncate text-sm font-medium">
+              <span className="block truncate text-sm font-medium min-w-0">
                 {loading ? 'Loading agents...' : selected?.name || 'Select Agent'}
               </span>
             </div>

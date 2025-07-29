@@ -27,3 +27,20 @@ export async function getKubeconfigStatus(sessionId: string): Promise<boolean> {
   const data = await res.json();
   return Boolean(data.set);
 }
+
+export interface ClusterInfo {
+  name: string;
+  connected: boolean;
+}
+
+export async function getClusterInfo(sessionId: string): Promise<ClusterInfo> {
+  const res = await fetch(`/ai-api/kubeconfig/status?session_id=${encodeURIComponent(sessionId)}`);
+  if (!res.ok) {
+    throw new Error(`Status check failed with status ${res.status}`);
+  }
+  const data = await res.json();
+  return {
+    name: data.cluster_name || 'Unknown Cluster',
+    connected: Boolean(data.set)
+  };
+}

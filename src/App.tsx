@@ -8,7 +8,7 @@ import StatusIndicator from './components/StatusIndicator';
 import KubeconfigModal from './components/KubeconfigModal';
 import { useAgents } from './hooks/useAgents';
 import { useChatSession } from './hooks/useChatSession';
-import { getKubeconfigStatus } from './api/api';
+import { getClusterInfo, type ClusterInfo } from './api/api';
 
 const App: React.FC = () => {
   const { agents, loading: agentsLoading } = useAgents();
@@ -28,7 +28,7 @@ const App: React.FC = () => {
     hasSentFirstMessage,
   } = useChatSession();
 
-  const [kubeReady, setKubeReady] = useState<boolean>(false);
+  const [clusterInfo, setClusterInfo] = useState<ClusterInfo>({ name: '', connected: false });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showInspectPanel, setShowInspectPanel] = useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
@@ -46,13 +46,13 @@ const App: React.FC = () => {
     const checkStatus = async () => {
       if (sessionId) {
         try {
-          const ok = await getKubeconfigStatus(sessionId);
-          if (!canceled) setKubeReady(ok);
+          const info = await getClusterInfo(sessionId);
+          if (!canceled) setClusterInfo(info);
         } catch {
-          if (!canceled) setKubeReady(false);
+          if (!canceled) setClusterInfo({ name: '', connected: false });
         }
       } else {
-        setKubeReady(false);
+        setClusterInfo({ name: '', connected: false });
       }
     };
     checkStatus();
@@ -88,11 +88,18 @@ const App: React.FC = () => {
     };
   }, []);
   const handleReady = () => {
-    setKubeReady(true);
+    // Trigger a status check to get the cluster name
+    if (sessionId) {
+      getClusterInfo(sessionId).then(info => {
+        setClusterInfo(info);
+      }).catch(() => {
+        setClusterInfo({ name: '', connected: false });
+      });
+    }
   };
 
   const handleReset = () => {
-    setKubeReady(false);
+    setClusterInfo({ name: '', connected: false });
   };
 
   const openModal = () => setIsModalOpen(true);
@@ -100,47 +107,52 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background text-text-primary font-sans overflow-hidden">
-      {/* Compact Header */}
-      <header className="glass-effect border-b border-border/50 px-4 py-2 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-3">
+      {/* Mobile-Optimized Header */}
+      <header className="glass-effect border-b border-border/50 px-3 sm:px-4 py-2 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <div className="p-1 bg-accent/10 rounded-lg">
               <img 
                 src="./6583f506bcc4b0a0f183dfe8_Group 7202.svg" 
                 alt="Intelligence Logo" 
-                className="h-4 w-5"
+                className="h-3 w-4 sm:h-4 sm:w-5"
               />
             </div>
-            <h1 className="text-base font-semibold text-gradient">Intelligence</h1>
+            <h1 className="text-sm sm:text-base font-semibold text-gradient hidden xs:block">Intelligence</h1>
           </div>
           
-          <div className="h-5 w-px bg-border" />
+          <div className="h-4 sm:h-5 w-px bg-border hidden xs:block" />
           
-          <AgentSelector
-            agents={agents}
-            loading={agentsLoading}
-            selected={currentAgent}
-            onChange={selectAgent}
-          />
+          <div className="min-w-0 flex-1 sm:flex-none">
+            <AgentSelector
+              agents={agents}
+              loading={agentsLoading}
+              selected={currentAgent}
+              onChange={selectAgent}
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {sessionId && (
             <button
               onClick={openModal}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 ${
-                kubeReady
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                clusterInfo.connected
                   ? 'bg-success/10 text-success border border-success/20 hover:bg-success/20'
                   : 'bg-warning/10 text-warning border border-warning/20 hover:bg-warning/20'
               }`}
             >
-              {kubeReady ? (
+              {clusterInfo.connected ? (
                 <CheckCircle2 className="h-3 w-3" />
               ) : (
                 <Upload className="h-3 w-3" />
               )}
-              <span>
-                {kubeReady ? 'Config Ready' : 'Upload Config'}
+              <span className="hidden sm:inline">
+                {clusterInfo.connected ? `Connected to ${clusterInfo.name}` : 'Upload Config'}
+              </span>
+              <span className="sm:hidden">
+                {clusterInfo.connected ? 'Connected' : 'Upload'}
               </span>
             </button>
           )}
@@ -151,7 +163,7 @@ const App: React.FC = () => {
             sessionId={sessionId}
             isOpen={isModalOpen}
             onClose={closeModal}
-            isReady={kubeReady}
+            isReady={clusterInfo.connected}
             onReady={handleReady}
             onReset={handleReset}
           />
@@ -166,7 +178,7 @@ const App: React.FC = () => {
           onRespond={respondConfirmation}
           currentAgent={currentAgent}
           onSendMessage={sendMessage}
-          kubeReady={kubeReady}
+          kubeReady={clusterInfo.connected}
         />
         
         {showInspectPanel && (
@@ -191,9 +203,9 @@ const App: React.FC = () => {
             <InputBar 
               ref={inputRef}
               onSend={sendMessage} 
-              disabled={isBusy || !kubeReady} 
+              disabled={isBusy || !clusterInfo.connected} 
               placeholder={
-                !kubeReady 
+                !clusterInfo.connected 
                   ? "Please upload kubeconfig to start chatting..." 
                   : "Ask me anything about your Kubernetes cluster..."
               }
