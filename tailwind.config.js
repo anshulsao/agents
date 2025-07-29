@@ -76,6 +76,9 @@ export default {
         '88': '22rem',
         '128': '32rem',
       },
+      screens: {
+        'xs': '475px',
+      },
       borderRadius: {
         'xl': '0.75rem',
         '2xl': '1rem',
