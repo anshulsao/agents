@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Settings, Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle } from 'lucide-react';
 import AgentSelector from './components/AgentSelector';
 import ChatWindow from './components/ChatWindow';
 import InputBar from './components/InputBar';
@@ -60,6 +60,21 @@ const App: React.FC = () => {
     };
   }, [sessionId]);
 
+  // Add hotkey listener for Cmd+Shift+S
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'S') {
+        event.preventDefault();
+        console.log('Hotkey triggered: Cmd+Shift+S');
+        setShowInspectPanel(prev => !prev);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
   const handleReady = () => {
     setKubeReady(true);
   };
@@ -117,17 +132,6 @@ const App: React.FC = () => {
               </span>
             </button>
           )}
-          
-          <button
-            onClick={() => setShowInspectPanel(!showInspectPanel)}
-            className={`p-1 rounded-lg transition-all duration-200 ${
-              showInspectPanel
-                ? 'bg-accent text-white'
-                : 'bg-surface hover:bg-surface-hover text-text-secondary'
-            }`}
-          >
-            <Settings className="h-3.5 w-3.5" />
-          </button>
         </div>
 
         {sessionId && (
