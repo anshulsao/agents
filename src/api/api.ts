@@ -40,7 +40,7 @@ export async function getClusterInfo(sessionId: string): Promise<ClusterInfo> {
   }
   const data = await res.json();
   return {
-    name: data.cluster_name || 'Unknown Cluster',
+    name: data.cluster || 'Unknown Cluster',
     connected: Boolean(data.set)
   };
 }
