@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Upload, CheckCircle2, AlertCircle, Menu } from 'lucide-react';
 import AgentSelector from './components/AgentSelector';
+import UsageTracker from './components/UsageTracker';
 import MobileMenu from './components/MobileMenu';
 import ChatWindow from './components/ChatWindow';
 import InputBar from './components/InputBar';
@@ -146,6 +147,11 @@ const App: React.FC = () => {
           >
             <Menu className="h-5 w-5 text-text-tertiary" />
           </button>
+
+          {/* Usage Tracker - Desktop */}
+          <div className="hidden sm:block">
+            <UsageTracker />
+          </div>
 
           {/* Desktop Cluster Status */}
           {sessionId && (

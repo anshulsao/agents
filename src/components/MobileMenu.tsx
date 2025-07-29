@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Bot, Upload, CheckCircle2 } from 'lucide-react';
 import AgentSelector from './AgentSelector';
+import UsageTracker from './UsageTracker';
 import type { AgentDetail } from '../hooks/useAgents';
 import type { ClusterInfo } from '../api/api';
 
@@ -81,6 +82,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                       selected={currentAgent}
                       onChange={onAgentChange}
                     />
+                  </div>
+
+                  {/* Usage Tracker - Mobile */}
+                  <div>
+                    <label className="block text-sm font-medium text-text-secondary mb-3">
+                      Usage
+                    </label>
+                    <UsageTracker />
                   </div>
 
                   {/* Cluster Status */}

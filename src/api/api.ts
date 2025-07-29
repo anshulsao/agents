@@ -44,3 +44,41 @@ export async function getClusterInfo(sessionId: string): Promise<ClusterInfo> {
     connected: Boolean(data.set)
   };
 }
+
+export interface UserInfo {
+  username: string;
+  email: string;
+  name: string;
+  id: string;
+  auth_mode: string;
+}
+
+export interface UsagePlan {
+  user_id: string;
+  cycle_day: number;
+  dollar_limit: number;
+}
+
+export interface UsageTracker {
+  user_id: string;
+  cycle_start: string;
+  cycle_end: string;
+  plan: UsagePlan;
+  used_amount: number;
+}
+
+export async function getUserInfo(): Promise<UserInfo> {
+  const res = await fetch('/ai-api/auth/me');
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user info: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function getUsageTracker(userId: string): Promise<UsageTracker> {
+  const res = await fetch(`/ai-api/usage/tracker?user_id=${encodeURIComponent(userId)}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch usage tracker: ${res.status}`);
+  }
+  return await res.json();
+}
