@@ -50,6 +50,7 @@ export interface UserInfo {
   email: string;
   name: string;
   id: string;
+  userId?: string;
   auth_mode: string;
 }
 
@@ -72,7 +73,14 @@ export async function getUserInfo(): Promise<UserInfo> {
   if (!res.ok) {
     throw new Error(`Failed to fetch user info: ${res.status}`);
   }
-  return await res.json();
+  const data = await res.json();
+  
+  // Use userId as fallback if id is not present
+  if (!data.id && data.userId) {
+    data.id = data.userId;
+  }
+  
+  return data;
 }
 
 export async function getUsageTracker(userId: string): Promise<UsageTracker> {
