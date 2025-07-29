@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Upload, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, Menu } from 'lucide-react';
 import AgentSelector from './components/AgentSelector';
+import MobileMenu from './components/MobileMenu';
 import ChatWindow from './components/ChatWindow';
 import InputBar from './components/InputBar';
 import InspectPanel from './components/InspectPanel';
@@ -30,6 +31,7 @@ const App: React.FC = () => {
 
   const [clusterInfo, setClusterInfo] = useState<ClusterInfo>({ name: '', connected: false });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showInspectPanel, setShowInspectPanel] = useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -104,26 +106,29 @@ const App: React.FC = () => {
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const openMobileMenu = () => setIsMobileMenuOpen(true);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <div className="h-screen flex flex-col bg-background text-text-primary font-sans overflow-hidden">
-      {/* Mobile-Optimized Header */}
-      <header className="glass-effect border-b border-border/50 px-3 sm:px-4 py-2 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      {/* Streamlined Header */}
+      <header className="glass-effect border-b border-border/50 px-4 py-3 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <div className="p-1 bg-accent/10 rounded-lg">
               <img 
                 src="./6583f506bcc4b0a0f183dfe8_Group 7202.svg" 
                 alt="Intelligence Logo" 
-                className="h-3 w-4 sm:h-4 sm:w-5"
+                className="h-4 w-5"
               />
             </div>
-            <h1 className="text-sm sm:text-base font-semibold text-gradient hidden xs:block">Intelligence</h1>
+            <h1 className="text-base font-semibold text-gradient hidden sm:block">Intelligence</h1>
           </div>
           
-          <div className="h-4 sm:h-5 w-px bg-border hidden xs:block" />
+          <div className="h-5 w-px bg-border hidden sm:block" />
           
-          <div className="min-w-0 flex-1 sm:flex-none">
+          {/* Desktop Agent Selector */}
+          <div className="hidden sm:block min-w-0 flex-1 max-w-xs">
             <AgentSelector
               agents={agents}
               loading={agentsLoading}
@@ -133,11 +138,20 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={openMobileMenu}
+            className="sm:hidden p-2 hover:bg-surface-hover rounded-lg transition-colors"
+          >
+            <Menu className="h-5 w-5 text-text-tertiary" />
+          </button>
+
+          {/* Desktop Cluster Status */}
           {sessionId && (
             <button
               onClick={openModal}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                 clusterInfo.connected
                   ? 'bg-success/10 text-success border border-success/20 hover:bg-success/20'
                   : 'bg-warning/10 text-warning border border-warning/20 hover:bg-warning/20'
@@ -148,15 +162,24 @@ const App: React.FC = () => {
               ) : (
                 <Upload className="h-3 w-3" />
               )}
-              <span className="hidden sm:inline">
+              <span>
                 {clusterInfo.connected ? `Connected to ${clusterInfo.name}` : 'Upload Config'}
-              </span>
-              <span className="sm:hidden">
-                {clusterInfo.connected ? 'Connected' : 'Upload'}
               </span>
             </button>
           )}
         </div>
+
+        {/* Mobile Menu */}
+        <MobileMenu
+          isOpen={isMobileMenuOpen}
+          onClose={closeMobileMenu}
+          agents={agents}
+          agentsLoading={agentsLoading}
+          currentAgent={currentAgent}
+          onAgentChange={selectAgent}
+          clusterInfo={clusterInfo}
+          onConfigClick={openModal}
+        />
 
         {sessionId && (
           <KubeconfigModal

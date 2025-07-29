@@ -12,22 +12,22 @@ interface AgentSelectorProps {
 
 const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected, onChange }) => {
   return (
-    <div className="w-full sm:w-56">
+    <div className="w-full">
       <Listbox value={selected} onChange={onChange} disabled={loading}>
         <div className="relative">
-          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-surface hover:bg-surface-hover border border-border py-2 pl-3 pr-8 text-left text-text-primary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent disabled:opacity-50 min-w-0">
+          <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-surface hover:bg-surface-hover border border-border py-2.5 pl-3 pr-8 text-left text-text-primary transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent disabled:opacity-50 min-w-0">
             <div className="flex items-center gap-2">
               {loading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-text-tertiary" />
+                <Loader2 className="h-4 w-4 animate-spin text-text-tertiary" />
               ) : (
-                <Bot className="h-3.5 w-3.5 text-accent" />
+                <Bot className="h-4 w-4 text-accent" />
               )}
               <span className="block truncate text-sm font-medium min-w-0">
                 {loading ? 'Loading agents...' : selected?.name || 'Select Agent'}
               </span>
             </div>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronUpDownIcon className="h-3.5 w-3.5 text-text-tertiary" aria-hidden="true" />
+              <ChevronUpDownIcon className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
             </span>
           </Listbox.Button>
           
@@ -51,14 +51,14 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({ agents, loading, selected
                   {({ selected: isSelected }) => (
                     <>
                       <div className="flex items-center gap-2">
-                        <Bot className="h-3.5 w-3.5 text-accent" />
+                        <Bot className="h-4 w-4 text-accent" />
                         <span className={`block truncate text-sm ${isSelected ? 'font-semibold text-text-primary' : 'font-normal'}`}>
                           {agent.name}
                         </span>
                       </div>
                       {isSelected && (
                         <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-accent">
-                          <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                          <CheckIcon className="h-4 w-4" aria-hidden="true" />
                         </span>
                       )}
                     </>
