@@ -31,6 +31,7 @@ const App: React.FC = () => {
   const [kubeReady, setKubeReady] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showInspectPanel, setShowInspectPanel] = useState(false);
+  const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Auto-select first agent
   useEffect(() => {
@@ -60,6 +61,17 @@ const App: React.FC = () => {
     };
   }, [sessionId]);
 
+  // Restore focus to input when agent finishes responding
+  useEffect(() => {
+    if (!isBusy && hasSentFirstMessage && inputRef.current) {
+      // Small delay to ensure the UI has updated
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isBusy, hasSentFirstMessage]);
   // Add hotkey listener for Cmd+Shift+S
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -177,6 +189,7 @@ const App: React.FC = () => {
               hasSentFirstMessage={hasSentFirstMessage}
             />
             <InputBar 
+              ref={inputRef}
               onSend={sendMessage} 
               disabled={isBusy || !kubeReady} 
               placeholder={

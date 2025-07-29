@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
+import React, { useState, KeyboardEvent, useRef, useEffect, forwardRef } from 'react';
 import { Send } from 'lucide-react';
 
 interface InputBarProps {
@@ -7,14 +7,16 @@ interface InputBarProps {
   placeholder?: string;
 }
 
-const InputBar: React.FC<InputBarProps> = ({ 
+const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({ 
   onSend, 
   disabled = false, 
   placeholder = "Type your message..." 
-}) => {
+}, ref) => {
   const [text, setText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Merge external ref with internal ref
+  React.useImperativeHandle(ref, () => textareaRef.current!);
   const adjustHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -80,6 +82,8 @@ const InputBar: React.FC<InputBarProps> = ({
       </div>
     </div>
   );
-};
+});
+
+InputBar.displayName = 'InputBar';
 
 export default InputBar;
