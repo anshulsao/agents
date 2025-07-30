@@ -76,8 +76,8 @@ export async function getUserInfo(): Promise<UserInfo> {
   const data = await res.json();
   
   // Use userId as fallback if id is not present
-  if (!data.id && data.userId) {
-    data.id = data.userId;
+  if (!data.id && data.user_id) {
+    data.id = data.user_id;
   }
   
   return data;
