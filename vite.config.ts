@@ -64,16 +64,51 @@ export default defineConfig({
             proxyReq.setHeader('Upgrade', 'websocket');
           });
 
-          // Minimal error handling
+          // Enhanced error handling and response logging
           proxy.on('error', (err, req, res) => {
             if (err.code !== 'ECONNRESET') {
-              console.log('Proxy error:', err.message);
+              console.error('🚨 Proxy error:', err.message);
+              console.error('Request URL:', req.url);
+              console.error('Error details:', err);
             }
           });
 
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            if (proxyRes.statusCode >= 400) {
-              console.log('Response status:', proxyRes.statusCode);
+            const statusCode = proxyRes.statusCode;
+            const url = req.url;
+            
+            if (statusCode >= 400) {
+              console.error(`🚨 HTTP ${statusCode} Error for ${url}`);
+              console.error('Request headers:', req.headers);
+              console.error('Response headers:', proxyRes.headers);
+              
+              // Capture response body for 500 errors
+              if (statusCode === 500) {
+                let body = '';
+                const originalWrite = res.write;
+                const originalEnd = res.end;
+                
+                // Buffer the response body
+                proxyRes.on('data', (chunk) => {
+                  body += chunk.toString();
+                });
+                
+                proxyRes.on('end', () => {
+                  console.error('🔥 500 Error Response Body:');
+                  console.error('=====================================');
+                  try {
+                    // Try to parse as JSON for better formatting
+                    const jsonBody = JSON.parse(body);
+                    console.error(JSON.stringify(jsonBody, null, 2));
+                  } catch {
+                    // If not JSON, log as plain text
+                    console.error(body);
+                  }
+                  console.error('=====================================');
+                });
+              }
+            } else if (statusCode >= 200 && statusCode < 300) {
+              console.log(`✅ HTTP ${statusCode} Success for ${url}`);
             }
           });
         }
