@@ -59,13 +59,30 @@ export function useChatSession() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody),
           });
-          if (!res.ok) throw new Error(`Session creation failed: ${res.status}`);
+          
+          if (!res.ok) {
+            if (res.status === 429) {
+              // Rate limit exceeded - show upgrade message
+              setMessages([{
+                id: Date.now().toString(),
+                type: 'error',
+                content: '**Usage Limit Reached**\n\nYou\'ve reached your current usage limit. To continue using Intelligence, please upgrade your plan for higher limits and priority access.\n\n[Contact your administrator to upgrade your plan](mailto:support@facets.cloud?subject=Intelligence%20Plan%20Upgrade%20Request)'
+              }]);
+              return;
+            }
+            throw new Error(`Session creation failed: ${res.status}`);
+          }
+          
           const data = await res.json();
           setSessionId(data.session_id);
         } catch (e: any) {
           console.error('Session creation error:', e);
-          // For development, create a mock session ID
-          setSessionId(`mock-session-${Date.now()}`);
+          // Show generic error message for other failures
+          setMessages([{
+            id: Date.now().toString(),
+            type: 'error',
+            content: `Failed to create session: ${e.message || 'Unknown error occurred'}`
+          }]);
         }
       }
     };

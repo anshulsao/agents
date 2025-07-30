@@ -77,13 +77,14 @@ const StartingPrompts: React.FC<StartingPromptsProps> = ({ agent, onPromptSelect
           ))}
         </div>
       
-        {kubeReady && (
-          <div className="mt-4 text-center">
-            <p className="text-xs text-text-muted">
-              Or type your own message below to start a custom conversation
-            </p>
-          </div>
-        )}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-text-muted">
+            {kubeReady 
+              ? "Or type your own message below to start a custom conversation"
+              : "Upload your kubeconfig to start chatting"
+            }
+          </p>
+        </div>
       </div>
     </TooltipProvider>
   );
