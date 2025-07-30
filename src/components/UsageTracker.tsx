@@ -114,11 +114,6 @@ const UsageTrackerComponent: React.FC = () => {
           </>
         )}
         
-        {isExpanded ? (
-          <ChevronUp className="h-3 w-3 text-text-tertiary" />
-        ) : (
-          <ChevronDown className="h-3 w-3 text-text-tertiary" />
-        )}
       </button>
     </div>
   );
