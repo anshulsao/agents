@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Upload, CheckCircle2, AlertCircle, Menu, LayoutDashboard } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, Menu } from 'lucide-react';
 import AgentSelector from './components/AgentSelector';
 import UsageTracker from './components/UsageTracker';
 import MobileMenu from './components/MobileMenu';
-import Navigation from './components/Navigation';
-import MobileNavigation from './components/MobileNavigation';
-import Breadcrumbs from './components/Breadcrumbs';
-import QuickActions from './components/QuickActions';
 import ChatWindow from './components/ChatWindow';
 import InputBar from './components/InputBar';
 import InspectPanel from './components/InspectPanel';
@@ -37,10 +33,7 @@ const App: React.FC = () => {
   const [clusterInfo, setClusterInfo] = useState<ClusterInfo>({ name: '', connected: false });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [showInspectPanel, setShowInspectPanel] = useState(false);
-  const [currentPath, setCurrentPath] = useState('/chat');
-  const [showNavigation, setShowNavigation] = useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Auto-select first agent
@@ -116,52 +109,13 @@ const App: React.FC = () => {
   const closeModal = () => setIsModalOpen(false);
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
-  const openMobileNav = () => setIsMobileNavOpen(true);
-  const closeMobileNav = () => setIsMobileNavOpen(false);
-
-  const handleNavigate = (path: string) => {
-    setCurrentPath(path);
-    // Here you would typically handle actual routing
-    console.log('Navigate to:', path);
-  };
-
-  const handleQuickAction = (actionId: string) => {
-    console.log('Quick action:', actionId);
-    // Handle quick actions
-  };
-
-  const toggleNavigation = () => {
-    setShowNavigation(!showNavigation);
-  };
-
-  const breadcrumbItems = [
-    { label: 'Chat', href: '/chat', current: currentPath === '/chat' }
-  ];
 
   return (
-    <div className="h-screen flex bg-background text-text-primary font-sans overflow-hidden">
-      {/* Desktop Navigation Sidebar */}
-      {showNavigation && (
-        <div className="hidden lg:block">
-          <Navigation currentPath={currentPath} onNavigate={handleNavigate} />
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col bg-background text-text-primary font-sans overflow-hidden">
       {/* Streamlined Header */}
       <header className="glass-effect border-b border-border/50 px-4 py-3 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            {/* Navigation Toggle */}
-            <button
-              onClick={toggleNavigation}
-              className="hidden lg:block p-2 hover:bg-surface-hover rounded-lg transition-colors"
-              title="Toggle Navigation"
-            >
-              <LayoutDashboard className="h-4 w-4 text-text-tertiary" />
-            </button>
-            
             <div className="p-1 bg-accent/10 rounded-lg">
               <svg 
                 width="20" 
@@ -183,14 +137,6 @@ const App: React.FC = () => {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Mobile Menu Button */}
-          <button
-            onClick={openMobileNav}
-            className="sm:hidden p-2 hover:bg-surface-hover rounded-lg transition-colors"
-          >
-            <Menu className="h-5 w-5 text-text-tertiary" />
-          </button>
-
-          {/* Mobile Menu Button for Agent/Usage */}
           <button
             onClick={openMobileMenu}
             className="sm:hidden p-2 hover:bg-surface-hover rounded-lg transition-colors"
@@ -225,15 +171,7 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile Navigation */}
-        <MobileNavigation
-          isOpen={isMobileNavOpen}
-          onClose={closeMobileNav}
-          currentPath={currentPath}
-          onNavigate={handleNavigate}
-        />
-
-        {/* Mobile Agent/Settings Menu */}
+        {/* Mobile Menu */}
         <MobileMenu
           isOpen={isMobileMenuOpen}
           onClose={closeMobileMenu}
@@ -258,22 +196,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Breadcrumbs */}
-          <div className="px-6 pt-4">
-            <Breadcrumbs items={breadcrumbItems} onNavigate={handleNavigate} />
-          </div>
-
-          {/* Content Area */}
-          <div className="flex flex-1 overflow-hidden">
-            <div className="flex-1 flex flex-col">
-              {/* Quick Actions - Show when no messages */}
-              {messages.length === 0 && clusterInfo.connected && (
-                <div className="px-6 pb-4">
-                  <QuickActions onAction={handleQuickAction} />
-                </div>
-              )}
-              
+      <div className="flex flex-1 overflow-hidden">
         <ChatWindow
           messages={messages}
           confirmations={confirmations}
@@ -282,8 +205,6 @@ const App: React.FC = () => {
           onSendMessage={sendMessage}
           kubeReady={clusterInfo.connected}
         />
-            </div>
-          </div>
         
         {showInspectPanel && (
           <InspectPanel 
@@ -291,7 +212,7 @@ const App: React.FC = () => {
             onClose={() => setShowInspectPanel(false)}
           />
         )}
-        </div>
+      </div>
 
       {/* Compact Footer */}
       <footer className="px-4 py-2 space-y-1.5 relative z-10">
@@ -317,7 +238,6 @@ const App: React.FC = () => {
           </div>
         </div>
       </footer>
-      </div>
     </div>
   );
 };
