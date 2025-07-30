@@ -18,11 +18,17 @@ export default defineConfig({
         target: 'https://facetsdemo.console.facets.cloud',
         changeOrigin: true,
         secure: false,
-        timeout: 30000,
-        proxyTimeout: 30000,
+        timeout: 60000,
+        proxyTimeout: 60000,
         ws: true,
         // Disable buffering which can cause message duplication
         buffer: false,
+        // Add retry logic and better connection handling
+        agent: false,
+        headers: {
+          'Connection': 'keep-alive',
+          'Keep-Alive': 'timeout=60, max=1000'
+        },
         configure: (proxy, options) => {
           // Add cookie reading function
           const getCookie = () => {
@@ -66,11 +72,74 @@ export default defineConfig({
 
           // Enhanced error handling and response logging
           proxy.on('error', (err, req, res) => {
-            if (err.code !== 'ECONNRESET') {
-              console.error('🚨 Proxy error:', err.message);
-              console.error('Request URL:', req.url);
-              console.error('Error details:', err);
+            const errorCode = err.code;
+            const url = req.url;
+            
+            // Handle different types of connection errors
+            switch (errorCode) {
+              case 'ECONNRESET':
+                console.warn('⚠️  Connection reset by server for:', url);
+                break;
+              case 'ENOTFOUND':
+                console.error('🚨 DNS lookup failed for:', url);
+                break;
+              case 'ECONNREFUSED':
+                console.error('🚨 Connection refused for:', url);
+                break;
+              case 'ETIMEDOUT':
+                console.error('🚨 Connection timeout for:', url);
+                break;
+              default:
+                console.error('🚨 Proxy error:', err.message);
+                console.error('Request URL:', url);
+                console.error('Error code:', errorCode);
+                console.error('Error details:', err);
             }
+            
+            // Try to send a proper error response if possible
+            if (res && !res.headersSent) {
+              try {
+                res.writeHead(502, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                  error: 'Proxy Error',
+                  message: `Failed to connect to backend: ${err.message}`,
+                  code: errorCode
+                }));
+              } catch (writeError) {
+                console.error('Failed to write error response:', writeError);
+              }
+            }
+          });
+
+          // Add connection event logging
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Only log for non-WebSocket requests
+            if (req.headers.upgrade !== 'websocket') {
+              const cookie = getCookie();
+              if (cookie) {
+                proxyReq.setHeader('Cookie', cookie);
+                console.log('✅ HTTP cookie added for:', req.url);
+              }
+              
+              // Add connection keep-alive headers
+              proxyReq.setHeader('Connection', 'keep-alive');
+              proxyReq.setHeader('Keep-Alive', 'timeout=60, max=1000');
+            }
+          });
+
+          // Handle WebSocket upgrade - simplified approach
+          proxy.on('proxyReqWs', (proxyReq, req, socket, options, head) => {
+            console.log('🔌 WebSocket upgrade:', proxyReq.path);
+
+            const cookie = getCookie();
+            if (cookie) {
+              proxyReq.setHeader('Cookie', cookie);
+              console.log('✅ WS cookie added');
+            }
+
+            // Ensure single connection by setting keep-alive
+            proxyReq.setHeader('Connection', 'Upgrade');
+            proxyReq.setHeader('Upgrade', 'websocket');
           });
 
           proxy.on('proxyRes', (proxyRes, req, res) => {
@@ -85,32 +154,6 @@ export default defineConfig({
               // Capture response body for 500 errors
               if (statusCode === 500) {
                 let body = '';
-                const originalWrite = res.write;
-                const originalEnd = res.end;
-                
-                // Buffer the response body
-                proxyRes.on('data', (chunk) => {
-                  body += chunk.toString();
-                });
-                
-                proxyRes.on('end', () => {
-                  console.error('🔥 500 Error Response Body:');
-                  console.error('=====================================');
-                  try {
-                    // Try to parse as JSON for better formatting
-                    const jsonBody = JSON.parse(body);
-                    console.error(JSON.stringify(jsonBody, null, 2));
-                  } catch {
-                    // If not JSON, log as plain text
-                    console.error(body);
-                  }
-                  console.error('=====================================');
-                });
-              }
-            } else if (statusCode >= 200 && statusCode < 300) {
-              console.log(`✅ HTTP ${statusCode} Success for ${url}`);
-            }
-          });
         }
       }
     }
