@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
+import https from 'https';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -21,6 +22,12 @@ export default defineConfig({
         timeout: 30000,
         proxyTimeout: 30000,
         ws: true,
+        agent: new https.Agent({
+          keepAlive: true,
+          keepAliveMsecs: 30000,
+          maxSockets: 10,
+          maxFreeSockets: 5
+        }),
         // Disable buffering which can cause message duplication
         buffer: false,
         configure: (proxy, options) => {
