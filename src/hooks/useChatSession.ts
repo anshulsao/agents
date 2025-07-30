@@ -386,6 +386,16 @@ export function useChatSession() {
         setIsBusy(false);
         clearStatus();
         
+        // Handle usage limit reached (4408)
+        if (ev.code === 4408) {
+          setMessages((prev) => [...prev, {
+            id: Date.now().toString(),
+            type: 'message',
+            content: '**Usage Limit Reached**\n\nYou\'ve reached your current usage limit. To continue using Intelligence, please upgrade your plan for higher limits and priority access.\n\n[Contact your administrator to upgrade your plan](mailto:support@facets.cloud?subject=Intelligence%20Plan%20Upgrade%20Request)'
+          }]);
+          return; // Don't attempt reconnection for usage limit errors
+        }
+        
         // Only attempt reconnection if it wasn't a normal closure and we have a session  
         if (ev.code !== 1000 && ev.code !== 1001 && sessionId && agent) {
           attemptReconnect(sessionId, agent);
