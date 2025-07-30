@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, Calendar, AlertTriangle } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { getUserInfo, getUsageTracker, type UserInfo, type UsageTracker } from '../api/api';
 
 const UsageTrackerComponent: React.FC = () => {
@@ -7,6 +7,7 @@ const UsageTrackerComponent: React.FC = () => {
   const [usage, setUsage] = useState<UsageTracker | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,10 +44,13 @@ const UsageTrackerComponent: React.FC = () => {
 
   if (error || !usage || !userInfo) {
     return (
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-error/10 border border-error/20 rounded-lg">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-error/10 border border-error/20 rounded-lg hover:bg-error/20 transition-colors"
+      >
         <AlertTriangle className="h-3 w-3 text-error" />
-        <span className="text-xs text-error">Usage unavailable</span>
-      </div>
+        {isExpanded && <span className="text-xs text-error">Usage unavailable</span>}
+      </button>
     );
   }
 
@@ -63,36 +67,59 @@ const UsageTrackerComponent: React.FC = () => {
   };
 
   const getBackgroundColor = () => {
-    if (isOverLimit) return 'bg-error/10 border-error/20';
-    if (isNearLimit) return 'bg-warning/10 border-warning/20';
-    return 'bg-success/10 border-success/20';
+    if (isOverLimit) return 'bg-error/10 border-error/20 hover:bg-error/20';
+    if (isNearLimit) return 'bg-warning/10 border-warning/20 hover:bg-warning/20';
+    return 'bg-success/10 border-success/20 hover:bg-success/20';
+  };
+
+  const getIconColor = () => {
+    if (isOverLimit) return 'text-error';
+    if (isNearLimit) return 'text-warning';
+    return 'text-success';
   };
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}>
-      <div className="flex items-center gap-1.5 text-xs">
-        <span className={`font-medium ${getStatusColor()}`}>
-          {formatCurrency(usage.used_amount)}
-        </span>
-        <span className="text-text-muted">/</span>
-        <span className="text-text-secondary">
-          {formatCurrency(usage.plan.dollar_limit)}
-        </span>
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
+      >
+        <DollarSign className={`h-3 w-3 ${getIconColor()}`} />
+        
+        {isExpanded && (
+          <>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className={`font-medium ${getStatusColor()}`}>
+                {formatCurrency(usage.used_amount)}
+              </span>
+              <span className="text-text-muted">/</span>
+              <span className="text-text-secondary">
+                {formatCurrency(usage.plan.dollar_limit)}
+              </span>
+            </div>
 
-      {/* Usage bar */}
-      <div className="w-8 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
-        <div 
-          className={`h-full transition-all duration-300 ${
-            isOverLimit ? 'bg-error' : isNearLimit ? 'bg-warning' : 'bg-success'
-          }`}
-          style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-        />
-      </div>
+            {/* Usage bar */}
+            <div className="w-8 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-300 ${
+                  isOverLimit ? 'bg-error' : isNearLimit ? 'bg-warning' : 'bg-success'
+                }`}
+                style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+              />
+            </div>
 
-      <span className={`text-xs font-medium ${getStatusColor()}`}>
-        {usagePercentage.toFixed(0)}%
-      </span>
+            <span className={`text-xs font-medium ${getStatusColor()}`}>
+              {usagePercentage.toFixed(0)}%
+            </span>
+          </>
+        )}
+        
+        {isExpanded ? (
+          <ChevronUp className="h-3 w-3 text-text-tertiary" />
+        ) : (
+          <ChevronDown className="h-3 w-3 text-text-tertiary" />
+        )}
+      </button>
     </div>
   );
 };
