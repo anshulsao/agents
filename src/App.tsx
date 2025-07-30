@@ -133,15 +133,6 @@ const App: React.FC = () => {
           
           <div className="h-5 w-px bg-border hidden sm:block" />
           
-          {/* Desktop Agent Selector */}
-          <div className="hidden sm:block min-w-0 flex-1 max-w-xs">
-            <AgentSelector
-              agents={agents}
-              loading={agentsLoading}
-              selected={currentAgent}
-              onChange={selectAgent}
-            />
-          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
