@@ -65,7 +65,7 @@ export function useChatSession() {
               // Rate limit exceeded - show upgrade message
               setMessages([{
                 id: Date.now().toString(),
-                type: 'error',
+                type: 'message',
                 content: '**Usage Limit Reached**\n\nYou\'ve reached your current usage limit. To continue using Intelligence, please upgrade your plan for higher limits and priority access.\n\n[Contact your administrator to upgrade your plan](mailto:support@facets.cloud?subject=Intelligence%20Plan%20Upgrade%20Request)'
               }]);
               return;
