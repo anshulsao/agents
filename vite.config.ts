@@ -154,6 +154,9 @@ export default defineConfig({
               // Capture response body for 500 errors
               if (statusCode === 500) {
                 let body = '';
+              }
+            }
+          });
         }
       }
     }
