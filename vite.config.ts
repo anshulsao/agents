@@ -126,39 +126,8 @@ export default defineConfig({
               proxyReq.setHeader('Keep-Alive', 'timeout=60, max=1000');
             }
           });
-
-          // Handle WebSocket upgrade - simplified approach
-          proxy.on('proxyReqWs', (proxyReq, req, socket, options, head) => {
-            console.log('🔌 WebSocket upgrade:', proxyReq.path);
-
-            const cookie = getCookie();
-            if (cookie) {
-              proxyReq.setHeader('Cookie', cookie);
-              console.log('✅ WS cookie added');
-            }
-
-            // Ensure single connection by setting keep-alive
-            proxyReq.setHeader('Connection', 'Upgrade');
-            proxyReq.setHeader('Upgrade', 'websocket');
-          });
-
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            const statusCode = proxyRes.statusCode;
-            const url = req.url;
-            
-            if (statusCode >= 400) {
-              console.error(`🚨 HTTP ${statusCode} Error for ${url}`);
-              console.error('Request headers:', req.headers);
-              console.error('Response headers:', proxyRes.headers);
-              
-              // Capture response body for 500 errors
-              if (statusCode === 500) {
-                let body = '';
-              }
-            }
-          });
         }
-      }
+      })
     }
   }
 });
