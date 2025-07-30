@@ -70,8 +70,6 @@ const UsageTrackerComponent: React.FC = () => {
 
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}>
-      <DollarSign className={`h-3 w-3 ${getStatusColor()}`} />
-      
       <div className="flex items-center gap-1.5 text-xs">
         <span className={`font-medium ${getStatusColor()}`}>
           {formatCurrency(usage.used_amount)}
