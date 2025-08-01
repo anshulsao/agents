@@ -183,12 +183,12 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
           {/* Simple header with icon and arrow */}
           <div 
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80 transition-opacity text-white"
           >
-            <div className="p-1 rounded-lg bg-accent/20">
-              <Brain className="h-4 w-4 text-accent" />
+            <div className="p-1 rounded-lg bg-white/10">
+              <Brain className="h-4 w-4 text-white" />
             </div>
-            <span className="font-medium text-sm text-white">Thinking</span>
+            <span className="font-medium text-sm">Thinking</span>
             <div className="text-text-tertiary ml-1">
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
