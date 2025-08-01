@@ -39,7 +39,6 @@ export function useChatSession() {
   useEffect(() => {
     const createSession = async () => {
       if (currentAgent && !sessionId) {
-        console.log('🔄 Creating new session for agent:', currentAgent.name);
         try {
           // Get all query params as a dictionary
           const urlParams = new URLSearchParams(window.location.search);
@@ -48,14 +47,10 @@ export function useChatSession() {
             agentInitArgs[key] = value;
           });
           
-          console.log('📋 Agent init args:', agentInitArgs);
-          
           const requestBody: any = { agent_name: currentAgent.name };
           if (Object.keys(agentInitArgs).length > 0) {
             requestBody.agent_init_args = agentInitArgs;
           }
-          
-          console.log('📤 Session request body:', requestBody);
           
           const res = await fetch('/ai-api/chat/session', {
             method: 'POST',
@@ -63,12 +58,8 @@ export function useChatSession() {
             body: JSON.stringify(requestBody),
           });
           
-          console.log('📥 Session response status:', res.status);
-          console.log('📥 Session response headers:', Object.fromEntries(res.headers.entries()));
-          
           if (!res.ok) {
             if (res.status === 429) {
-              console.warn('⚠️ Rate limit exceeded (429)');
               // Rate limit exceeded - show upgrade message
               setMessages([{
                 id: Date.now().toString(),
@@ -77,21 +68,13 @@ export function useChatSession() {
               }]);
               return;
             }
-            const errorText = await res.text();
-            console.error('🚨 Session creation failed:', res.status, errorText);
             throw new Error(`Session creation failed: ${res.status}`);
           }
           
           const data = await res.json();
-          console.log('✅ Session created successfully:', data);
           setSessionId(data.session_id);
         } catch (e: any) {
-          console.error('🚨 Session creation error:', e);
-          console.error('Error details:', {
-            name: e.name,
-            message: e.message,
-            stack: e.stack
-          });
+          console.error('Session creation error:', e);
           // Show generic error message for other failures
           setMessages([{
             id: Date.now().toString(),
@@ -267,37 +250,22 @@ export function useChatSession() {
   const connectWebSocket = (sid: string, agent: AgentDetail, initialMessage: string | null) => {
     agentRef.current = agent;
     
-    console.log('🔌 Attempting WebSocket connection...');
-    console.log('Session ID:', sid);
-    console.log('Agent:', agent.name);
-    console.log('Environment:', {
-      protocol: window.location.protocol,
-      host: window.location.host,
-      userAgent: navigator.userAgent
-    });
-    
     let url: string;
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const host = window.location.host;
     url = `${protocol}://${host}/ai-api/chat/ws/${sid}?agent_name=${encodeURIComponent(agent.name)}`;
-    
-    console.log('🌐 WebSocket URL:', url);
     
     try {
       const socket = new WebSocket(url);
       ws.current = socket;
 
       socket.onopen = () => {
-        console.log('✅ WebSocket connected successfully');
-        console.log('Socket state:', socket.readyState);
-        console.log('Socket protocol:', socket.protocol);
-        console.log('Socket extensions:', socket.extensions);
+        console.log('WebSocket connected');
         setIsConnected(true);
         resetReconnection();
         addPacket({ type: 'connect', url });
         
         if (initialMessage) {
-          console.log('📤 Sending initial message:', initialMessage);
           const packet = { type: 'message', payload: { message: initialMessage } };
           socket.send(JSON.stringify(packet));
           addPacket({ ...packet, summary: 'send' });
@@ -312,7 +280,6 @@ export function useChatSession() {
       };
 
       socket.onmessage = (event) => {
-        console.log('📥 WebSocket message received:', event.data);
         try {
           const data = JSON.parse(event.data);
           addPacket(data);
@@ -446,11 +413,7 @@ export function useChatSession() {
       };
 
       socket.onclose = (ev) => {
-        console.log('❌ WebSocket closed');
-        console.log('Close code:', ev.code);
-        console.log('Close reason:', ev.reason);
-        console.log('Was clean:', ev.wasClean);
-        console.log('Socket state at close:', socket.readyState);
+        console.log('WebSocket closed:', ev.code, ev.reason);
         setIsConnected(false);
         addPacket({ type: 'close', code: ev.code, reason: ev.reason });
         setIsBusy(false);
@@ -476,10 +439,7 @@ export function useChatSession() {
       };
       
       socket.onerror = (err) => {
-        console.error('🚨 WebSocket error occurred');
-        console.error('Error event:', err);
-        console.error('Socket state:', socket.readyState);
-        console.error('Socket URL:', socket.url);
+        console.error('WebSocket error:', err);
         setIsConnected(false);
         setMessages((prev) => [...prev, { 
           id: Date.now().toString(), 
@@ -490,18 +450,12 @@ export function useChatSession() {
         clearStatus();
       };
     } catch (err) {
-      console.error('🚨 Failed to create WebSocket connection');
-      console.error('Creation error:', err);
-      console.error('Error details:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack
-      });
+      console.error('Failed to create WebSocket connection:', err);
       setIsConnected(false);
       setMessages((prev) => [...prev, { 
         id: Date.now().toString(), 
         type: 'error', 
-        content: `Failed to establish connection: ${err.message}` 
+        content: 'Failed to establish connection' 
       }]);
       setIsBusy(false);
       clearStatus();
@@ -511,13 +465,8 @@ export function useChatSession() {
   const sendMessage = (text: string) => {
     if (!currentAgent || !sessionId) {
       console.warn('Cannot send message: missing agent or session');
-      console.warn('Current agent:', currentAgent);
-      console.warn('Session ID:', sessionId);
       return;
     }
-    
-    console.log('📤 Sending message:', text);
-    console.log('WebSocket state:', ws.current?.readyState);
     
     // Mark that the first message has been sent
     setHasSentFirstMessage(true);
@@ -527,11 +476,10 @@ export function useChatSession() {
     toolGroupIndex.current = null;
     
     if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
-      console.log('🔄 Creating new WebSocket connection');
-      console.log('Current WS state:', ws.current?.readyState);
+      console.log('Creating new WebSocket connection');
       connectWebSocket(sessionId, currentAgent, text);
     } else {
-      console.log('✅ Using existing WebSocket connection');
+      console.log('Using existing WebSocket connection');
       const packet = { type: 'message', payload: { message: text } };
       ws.current.send(JSON.stringify(packet));
       addPacket({ ...packet, summary: 'send' });
