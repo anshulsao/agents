@@ -180,48 +180,37 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     return (
       <div className="flex justify-start animate-slide-up w-full">
         <div className="w-full max-w-4xl relative group">
-          <div className="flex items-center gap-2 mb-2">
+          {/* Simple header with icon and arrow */}
+          <div 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <div className="p-1 rounded-lg bg-accent/20">
               <Brain className="h-4 w-4 text-accent" />
             </div>
             <span className="font-medium text-sm text-accent">Thinking</span>
+            <div className="text-text-tertiary ml-1">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </div>
           </div>
           
-          <div className="w-full bg-accent/5 rounded-xl overflow-hidden border border-accent/20">
-            {/* Collapsible Header */}
-            <div 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent/10 transition-all duration-200 group w-full"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-accent">
-                  View reasoning
-                </span>
-              </div>
-              
-              <div className="text-text-tertiary">
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </div>
-            </div>
-            
-            {/* Expandable Content - Reasoning Content */}
-            {isExpanded && (
-              <div className="border-t border-accent/20 bg-background/30">
-                <div className="p-4 space-y-3">
-                  <div className="text-sm leading-relaxed">
-                    <div 
-                      className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
-                      dangerouslySetInnerHTML={{ __html: marked.parse(content) }} 
-                    />
-                  </div>
+          {/* Expandable Content */}
+          {isExpanded && (
+            <div className="w-full bg-accent/5 rounded-xl overflow-hidden border border-accent/20 animate-slide-down">
+              <div className="p-4 space-y-3">
+                <div className="text-sm leading-relaxed">
+                  <div 
+                    className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
+                    dangerouslySetInnerHTML={{ __html: marked.parse(content) }} 
+                  />
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     );

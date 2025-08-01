@@ -323,12 +323,27 @@ export function useChatSession() {
             }
             
             case 'reasoning': {
-              updateStatus('Thinking...');
-              setMessages((prev) => [...prev, { 
-                id: Date.now().toString(), 
-                type: 'reasoning', 
-                content: data.payload.message 
-              }]);
+              setMessages((prev) => {
+                // Check if the last message is also a reasoning message
+                const lastMessage = prev[prev.length - 1];
+                if (lastMessage && lastMessage.type === 'reasoning') {
+                  // Append to existing reasoning message
+                  const updatedMessages = [...prev];
+                  updatedMessages[updatedMessages.length - 1] = {
+                    ...lastMessage,
+                    content: lastMessage.content + '\n\n' + data.payload.message
+                  };
+                  return updatedMessages;
+                } else {
+                  // Create new reasoning message
+                  updateStatus('Thinking...');
+                  return [...prev, { 
+                    id: Date.now().toString(), 
+                    type: 'reasoning', 
+                    content: data.payload.message 
+                  }];
+                }
+              });
               break;
             }
            
