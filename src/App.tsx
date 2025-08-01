@@ -8,6 +8,7 @@ import InputBar from './components/InputBar';
 import InspectPanel from './components/InspectPanel';
 import StatusIndicator from './components/StatusIndicator';
 import KubeconfigModal from './components/KubeconfigModal';
+import WebSocketTest from './components/WebSocketTest';
 import { useAgents } from './hooks/useAgents';
 import { useChatSession } from './hooks/useChatSession';
 import { getClusterInfo, type ClusterInfo } from './api/api';
@@ -213,6 +214,13 @@ const App: React.FC = () => {
           />
         )}
       </div>
+
+      {/* WebSocket Test Panel - Only show in development */}
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-4 right-4 w-80 z-50">
+          <WebSocketTest />
+        </div>
+      )}
 
       {/* Compact Footer */}
       <footer className="px-4 py-2 space-y-1.5 relative z-10">

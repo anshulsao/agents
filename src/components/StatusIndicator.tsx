@@ -16,6 +16,17 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   reconnectAttempts = 0,
   hasSentFirstMessage = false
 }) => {
+  // Add debug info in development
+  React.useEffect(() => {
+    console.log('🔍 Status Indicator State:', {
+      status,
+      isBusy,
+      isConnected,
+      reconnectAttempts,
+      hasSentFirstMessage
+    });
+  }, [status, isBusy, isConnected, reconnectAttempts, hasSentFirstMessage]);
+  
   // Always show status indicator, but content varies based on state
   
   // Show connection status if disconnected or reconnecting (only after first message)
