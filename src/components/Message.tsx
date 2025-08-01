@@ -9,7 +9,7 @@ interface MessageProps {
 }
 
 const Message: React.FC<MessageProps> = ({ message, agentName }) => {
-  const { type, content, name, args, tools, summary, reasoning, reasoningDuration } = message;
+  const { type, content, name, args, tools, summary } = message;
   const [copied, setCopied] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false); // Default collapsed
   
@@ -175,8 +175,8 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     );
   }
 
-  // Reasoning messages - collapsible thinking sections
-  if (isReasoning && reasoning && reasoning.length > 0) {
+  // Reasoning messages - collapsible thinking sections  
+  if (isReasoning && content) {
     return (
       <div className="flex justify-start animate-slide-up w-full">
         <div className="w-full max-w-4xl relative group">
@@ -195,7 +195,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
             >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-accent">
-                  Thought for {reasoningDuration || 0} seconds
+                  View reasoning
                 </span>
               </div>
               
@@ -208,18 +208,16 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
               </div>
             </div>
             
-            {/* Expandable Content - Reasoning Steps */}
+            {/* Expandable Content - Reasoning Content */}
             {isExpanded && (
               <div className="border-t border-accent/20 bg-background/30">
                 <div className="p-4 space-y-3">
-                  {reasoning.map((step, index) => (
-                    <div key={index} className="text-sm leading-relaxed">
-                      <div 
-                        className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
-                        dangerouslySetInnerHTML={{ __html: marked.parse(step.trim()) }} 
-                      />
-                    </div>
-                  ))}
+                  <div className="text-sm leading-relaxed">
+                    <div 
+                      className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
+                      dangerouslySetInnerHTML={{ __html: marked.parse(content) }} 
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -229,8 +227,8 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     );
   }
 
-  // Handle reasoning messages that don't have content yet (still collecting)
-  if (isReasoning && (!reasoning || reasoning.length === 0)) {
+  // Handle reasoning messages that don't have content yet
+  if (isReasoning && !content) {
     return (
       <div className="flex justify-start animate-slide-up w-full">
         <div className="w-full max-w-4xl relative group">
