@@ -177,35 +177,26 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
 
   // Reasoning messages - collapsible thinking sections
   if (isReasoning && reasoning && reasoning.length > 0) {
-    // Parse markdown content from reasoning messages
-    const renderReasoningContent = (content: string) => {
-      const html = marked.parse(content);
-      return (
-        <div 
-          className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
-          dangerouslySetInnerHTML={{ __html: html }} 
-        />
-      );
-    };
-
     return (
       <div className="flex justify-start animate-slide-up w-full">
         <div className="w-full max-w-4xl relative group">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1 rounded-lg bg-accent/20">
+              <Brain className="h-4 w-4 text-accent" />
+            </div>
+            <span className="font-medium text-sm text-accent">Thinking</span>
+          </div>
+          
           <div className="w-full bg-accent/5 rounded-xl overflow-hidden border border-accent/20">
             {/* Collapsible Header */}
             <div 
               onClick={() => setIsExpanded(!isExpanded)}
               className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent/10 transition-all duration-200 group w-full"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-1 rounded-lg bg-accent/20">
-                  <Brain className="h-4 w-4 text-accent" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-accent">
-                    Thought for {reasoningDuration || 0} seconds
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-accent">
+                  Thought for {reasoningDuration || 0} seconds
+                </span>
               </div>
               
               <div className="text-text-tertiary">
@@ -222,15 +213,41 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
               <div className="border-t border-accent/20 bg-background/30">
                 <div className="p-4 space-y-3">
                   {reasoning.map((step, index) => (
-                    <div key={index} className="text-sm text-text-secondary leading-relaxed">
-                      <div className="reasoning-content">
-                        {renderReasoningContent(step.trim())}
-                      </div>
+                    <div key={index} className="text-sm leading-relaxed">
+                      <div 
+                        className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
+                        dangerouslySetInnerHTML={{ __html: marked.parse(step.trim()) }} 
+                      />
                     </div>
                   ))}
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle reasoning messages that don't have content yet (still collecting)
+  if (isReasoning && (!reasoning || reasoning.length === 0)) {
+    return (
+      <div className="flex justify-start animate-slide-up w-full">
+        <div className="w-full max-w-4xl relative group">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1 rounded-lg bg-accent/20">
+              <Brain className="h-4 w-4 text-accent" />
+            </div>
+            <span className="font-medium text-sm text-accent">Thinking</span>
+          </div>
+          
+          <div className="w-full bg-accent/5 rounded-xl p-3 border border-accent/20">
+            <div className="flex items-center gap-2 text-sm text-accent">
+              <div className="w-1 h-1 bg-accent rounded-full animate-pulse" />
+              <div className="w-1 h-1 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1 h-1 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+              <span className="ml-2">Processing thoughts...</span>
+            </div>
           </div>
         </div>
       </div>

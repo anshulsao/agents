@@ -388,7 +388,22 @@ export function useChatSession() {
                 updateStatus('Thinking...');
                 createReasoningMessage();
               }
-              addReasoningContent(data.payload.message);
+             // Add the reasoning content to the existing message
+             setMessages((prev) => {
+               if (reasoningIndex.current === null) return prev;
+               
+               const msgs = [...prev];
+               const reasoningMsg = msgs[reasoningIndex.current];
+               if (reasoningMsg && reasoningMsg.type === 'reasoning') {
+                 // Append new reasoning content
+                 const updatedReasoning = [...(reasoningMsg.reasoning || []), data.payload.message];
+                 msgs[reasoningIndex.current] = {
+                   ...reasoningMsg,
+                   reasoning: updatedReasoning
+                 };
+               }
+               return msgs;
+             });
               break;
             }
            
