@@ -185,7 +185,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1 mb-2 cursor-pointer hover:opacity-80 transition-opacity text-white"
           >
-            <span className="font-medium text-sm">Thinking</span>
+            <span className="font-medium text-sm">Thoughts</span>
             <div className="text-text-tertiary ml-1">
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
