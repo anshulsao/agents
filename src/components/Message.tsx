@@ -188,7 +188,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
             <div className="p-1 rounded-lg bg-accent/20">
               <Brain className="h-4 w-4 text-accent" />
             </div>
-            <span className="font-medium text-sm text-accent">Thinking</span>
+            <span className="font-medium text-sm text-white">Thinking</span>
             <div className="text-text-tertiary ml-1">
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
