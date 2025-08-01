@@ -9,6 +9,8 @@ export type Message = {
   args?: any;
   tools?: any[];
   summary?: string;
+  reasoning?: string[];
+  reasoningDuration?: number;
 };
 
 type Confirmation = { id: string; command: string };
@@ -29,6 +31,8 @@ export function useChatSession() {
   const ws = useRef<WebSocket | null>(null);
   const streamingIndex = useRef<number | null>(null);
   const toolGroupIndex = useRef<number | null>(null);
+  const reasoningIndex = useRef<number | null>(null);
+  const reasoningStartTime = useRef<number | null>(null);
   const agentRef = useRef<AgentDetail | null>(null);
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -211,6 +215,60 @@ export function useChatSession() {
     }
   };
 
+  const createReasoningMessage = () => {
+    setMessages((prev) => {
+      const newMessage = {
+        id: Date.now().toString(),
+        type: 'reasoning',
+        content: '',
+        reasoning: [],
+        reasoningDuration: 0
+      };
+      reasoningIndex.current = prev.length;
+      reasoningStartTime.current = Date.now();
+      return [...prev, newMessage];
+    });
+  };
+
+  const addReasoningContent = (content: string) => {
+    setMessages((prev) => {
+      if (reasoningIndex.current === null) {
+        createReasoningMessage();
+        return prev;
+      }
+      
+      const msgs = [...prev];
+      const reasoningMsg = msgs[reasoningIndex.current];
+      if (reasoningMsg && reasoningMsg.type === 'reasoning') {
+        const updatedReasoning = [...(reasoningMsg.reasoning || []), content];
+        msgs[reasoningIndex.current] = {
+          ...reasoningMsg,
+          reasoning: updatedReasoning
+        };
+      }
+      return msgs;
+    });
+  };
+
+  const finalizeReasoning = () => {
+    if (reasoningIndex.current !== null && reasoningStartTime.current !== null) {
+      const duration = Math.round((Date.now() - reasoningStartTime.current) / 1000);
+      setMessages((prev) => {
+        const msgs = [...prev];
+        const reasoningMsg = msgs[reasoningIndex.current!];
+        if (reasoningMsg && reasoningMsg.type === 'reasoning') {
+          msgs[reasoningIndex.current!] = {
+            ...reasoningMsg,
+            reasoningDuration: duration
+          };
+        }
+        return msgs;
+      });
+      reasoningIndex.current = null;
+      reasoningStartTime.current = null;
+    }
+  };
+
   const respondConfirmation = (id: string, confirmed: boolean) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       const packet = { type: 'confirmation_response', payload: { id, confirmed } };
@@ -235,6 +293,8 @@ export function useChatSession() {
     setIsBusy(false);
     streamingIndex.current = null;
     toolGroupIndex.current = null;
+    reasoningIndex.current = null;
+    reasoningStartTime.current = null;
     
     if (statusTimerRef.current) {
       clearTimeout(statusTimerRef.current);
@@ -299,6 +359,7 @@ export function useChatSession() {
               // Start new message if not streaming
               if (streamingIndex.current === null) {
                 finalizeToolGroup(); // Finalize any pending tool group
+               finalizeReasoning(); // Finalize any pending reasoning
                 updateStatus(`Typing...`);
                 setMessages((prev) => {
                   streamingIndex.current = prev.length;
@@ -321,6 +382,15 @@ export function useChatSession() {
               break;
             }
             
+           case 'reasoning': {
+             // Add reasoning content
+             if (reasoningIndex.current === null) {
+               updateStatus('Thinking...');
+             }
+             addReasoningContent(data.payload.message);
+             break;
+           }
+           
             case 'tool_call': {
               let parsedArgs = data.payload.arguments;
               if (typeof parsedArgs === 'string') {
@@ -333,6 +403,7 @@ export function useChatSession() {
               
               // Create tool group if it doesn't exist
               if (toolGroupIndex.current === null) {
+               finalizeReasoning(); // Finalize reasoning before starting tools
                 createToolGroup();
                 updateStatus('Executing operations...');
               }
@@ -366,6 +437,7 @@ export function useChatSession() {
             
             case 'end':
               finalizeToolGroup();
+             finalizeReasoning();
               setIsBusy(false);
               clearStatus();
               streamingIndex.current = null;

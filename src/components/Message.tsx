@@ -1,6 +1,6 @@
 import React from 'react';
 import { marked } from 'marked';
-import { Bot, AlertTriangle, Wrench, Info, Copy, Check, ChevronDown, ChevronRight, Terminal } from 'lucide-react';
+import { Bot, AlertTriangle, Wrench, Info, Copy, Check, ChevronDown, ChevronRight, Terminal, Brain, Clock } from 'lucide-react';
 import type { Message as MessageType } from '../hooks/useChatSession';
 
 interface MessageProps {
@@ -9,7 +9,7 @@ interface MessageProps {
 }
 
 const Message: React.FC<MessageProps> = ({ message, agentName }) => {
-  const { type, content, name, args, tools, summary } = message;
+  const { type, content, name, args, tools, summary, reasoning, reasoningDuration } = message;
   const [copied, setCopied] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false); // Default collapsed
   
@@ -18,6 +18,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
   const isError = type === 'error';
   const isTool = type === 'tool_call';
   const isToolGroup = type === 'tool_calls_group';
+  const isReasoning = type === 'reasoning';
   const isSystem = type === 'system' || type === 'agent_update' || type === 'end';
 
   const handleCopy = async (text: string) => {
@@ -94,6 +95,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     if (isBot) return <Bot className="h-4 w-4" />;
     if (isError) return <AlertTriangle className="h-4 w-4" />;
     if (isTool || isToolGroup) return <Terminal className="h-4 w-4" />;
+    if (isReasoning) return <Brain className="h-4 w-4" />;
     if (isSystem) return <Info className="h-4 w-4" />;
     return <Bot className="h-4 w-4" />;
   };
@@ -102,6 +104,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     if (isBot) return agentName || 'Assistant';
     if (isError) return 'Error';
     if (isTool || isToolGroup) return 'Operations';
+    if (isReasoning) return 'Thinking';
     if (isSystem) return 'System';
     return 'Assistant';
   };
@@ -172,6 +175,58 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
     );
   }
 
+  // Reasoning messages - collapsible thinking sections
+  if (isReasoning && reasoning && reasoning.length > 0) {
+    return (
+      <div className="flex justify-start animate-slide-up w-full">
+        <div className="w-full max-w-4xl relative group">
+          <div className="w-full bg-accent/5 rounded-xl overflow-hidden border border-accent/20">
+            {/* Collapsible Header */}
+            <div 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent/10 transition-all duration-200 group w-full"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-1 rounded-lg bg-accent/20">
+                  <Brain className="h-4 w-4 text-accent" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-accent">
+                    Thought for {reasoningDuration || 0} seconds
+                  </span>
+                </div>
+              </div>
+              
+              <div className="text-text-tertiary">
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </div>
+            </div>
+            
+            {/* Expandable Content - Reasoning Steps */}
+            {isExpanded && (
+              <div className="border-t border-accent/20 bg-background/30">
+                <div className="p-4 space-y-3">
+                  {reasoning.map((step, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
+                      <div className="text-sm text-text-secondary leading-relaxed">
+                        {step.trim()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // User messages - right aligned, no label, no icon, grey background
   if (isUser) {
     return (
@@ -193,6 +248,7 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
           <div className={`p-1 rounded-lg ${
             isError ? 'bg-error/20' : 
             isTool || isToolGroup ? 'bg-accent/20' : 
+            isReasoning ? 'bg-accent/20' :
             'bg-accent/20'
           }`}>
             {getMessageIcon()}
