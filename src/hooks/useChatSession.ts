@@ -383,13 +383,14 @@ export function useChatSession() {
             }
             
            case 'reasoning': {
-             // Add reasoning content
-             if (reasoningIndex.current === null) {
-               updateStatus('Thinking...');
-             }
-             addReasoningContent(data.payload.message);
-             break;
-           }
+              // Add reasoning content
+              if (reasoningIndex.current === null) {
+                updateStatus('Thinking...');
+                createReasoningMessage();
+              }
+              addReasoningContent(data.payload.message);
+              break;
+            }
            
             case 'tool_call': {
               let parsedArgs = data.payload.arguments;

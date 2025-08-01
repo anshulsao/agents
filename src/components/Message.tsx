@@ -177,6 +177,17 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
 
   // Reasoning messages - collapsible thinking sections
   if (isReasoning && reasoning && reasoning.length > 0) {
+    // Parse markdown content from reasoning messages
+    const renderReasoningContent = (content: string) => {
+      const html = marked.parse(content);
+      return (
+        <div 
+          className="prose prose-invert prose-sm max-w-none prose-pre:bg-background-tertiary prose-pre:border prose-pre:border-border prose-code:text-accent prose-a:text-accent hover:prose-a:text-accent-light prose-p:text-text-primary prose-li:text-text-primary prose-strong:text-text-primary prose-ul:text-text-primary prose-ol:text-text-primary"
+          dangerouslySetInnerHTML={{ __html: html }} 
+        />
+      );
+    };
+
     return (
       <div className="flex justify-start animate-slide-up w-full">
         <div className="w-full max-w-4xl relative group">
@@ -211,10 +222,9 @@ const Message: React.FC<MessageProps> = ({ message, agentName }) => {
               <div className="border-t border-accent/20 bg-background/30">
                 <div className="p-4 space-y-3">
                   {reasoning.map((step, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                      <div className="text-sm text-text-secondary leading-relaxed">
-                        {step.trim()}
+                    <div key={index} className="text-sm text-text-secondary leading-relaxed">
+                      <div className="reasoning-content">
+                        {renderReasoningContent(step.trim())}
                       </div>
                     </div>
                   ))}
