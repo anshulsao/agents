@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { Upload, CheckCircle2, AlertCircle, Menu } from 'lucide-react';
 import IntelligencePage from './pages/IntelligencePage';
 import AgentSelector from './components/AgentSelector';
@@ -15,6 +15,7 @@ import { useChatSession } from './hooks/useChatSession';
 import { getClusterInfo, type ClusterInfo } from './api/api';
 
 const MainApp: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { agents, loading: agentsLoading } = useAgents();
   const {
     currentAgent,
@@ -38,12 +39,46 @@ const MainApp: React.FC = () => {
   const [showInspectPanel, setShowInspectPanel] = useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
-  // Auto-select first agent
+  // Agent selection based on URL parameter or default to first agent
   useEffect(() => {
-    if (!agentsLoading && agents.length > 0 && !currentAgent) {
-      selectAgent(agents[0]);
+    if (!agentsLoading && agents.length > 0) {
+      const agentParam = searchParams.get('agent');
+      
+      if (agentParam) {
+        // Try to find agent by name from URL parameter
+        const foundAgent = agents.find(agent => agent.name === agentParam);
+        if (foundAgent && (!currentAgent || currentAgent.name !== foundAgent.name)) {
+          selectAgent(foundAgent);
+        } else if (!foundAgent && (!currentAgent || currentAgent.name !== agents[0].name)) {
+          // If agent not found, fall back to first agent and update URL
+          selectAgent(agents[0]);
+          setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('agent', agents[0].name);
+            return newParams;
+          });
+        }
+      } else if (!currentAgent) {
+        // No agent parameter, select first agent and update URL
+        selectAgent(agents[0]);
+        setSearchParams(prev => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set('agent', agents[0].name);
+          return newParams;
+        });
+      }
     }
-  }, [agentsLoading, agents, currentAgent, selectAgent]);
+  }, [agentsLoading, agents, currentAgent, selectAgent, searchParams, setSearchParams]);
+
+  // Handle agent selection and update URL parameter
+  const handleAgentChange = (agent: typeof agents[0]) => {
+    selectAgent(agent);
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set('agent', agent.name);
+      return newParams;
+    });
+  };
 
   // Check kubeconfig status on sessionId change
   useEffect(() => {
@@ -180,7 +215,7 @@ const MainApp: React.FC = () => {
           agents={agents}
           agentsLoading={agentsLoading}
           currentAgent={currentAgent}
-          onAgentChange={selectAgent}
+          onAgentChange={handleAgentChange}
           clusterInfo={clusterInfo}
           onConfigClick={openModal}
         />
