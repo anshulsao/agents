@@ -50,14 +50,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onResp
                           <div className="absolute top-0 left-0 w-12 h-12 border-2 border-transparent border-t-accent rounded-full animate-spin"></div>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <div className="w-1 h-1 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-1 h-1 bg-accent rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-1 h-1 bg-accent rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                        <p className="text-sm text-text-tertiary">Loading Intelligence...</p>
-                      </div>
                     </div>
                   </div>
                 )}
