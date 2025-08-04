@@ -49,7 +49,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         {title}
       </h3>
       
-      <p className="text-text-secondary mb-4 leading-relaxed text-sm">
+      <p className="text-[#8A8F98] mb-4 text-sm leading-[140%]">
         {description}
       </p>
       
