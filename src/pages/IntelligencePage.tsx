@@ -28,9 +28,9 @@ const IntelligencePage: React.FC = () => {
           </div>
           
           {/* Hero Title */}
-          <h1 className="hero-title font-medium mb-4 max-w-[721px] mx-auto">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-text-primary mb-4 leading-tight">
             AI Agents That{' '}
-            <span className="hero-gradient">
+            <span className="text-gradient bg-gradient-to-r from-accent via-accent-light to-accent bg-clip-text text-transparent">
               Actually Fix
             </span>
             <br />
