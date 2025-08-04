@@ -41,8 +41,13 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         isActive ? 'bg-gradient-to-br from-[#6542BF] to-[#717CE1]' : 'bg-text-muted/20'
       }`}>
         <Icon className={`h-5 w-5 ${
-          isActive ? 'text-accent' : 'text-text-muted'
-        }`} />
+          isActive ? 'text-white' : 'text-text-muted'
+        }`} style={isActive ? {
+          background: 'linear-gradient(135deg, #6542BF 0%, #717CE1 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        } : undefined} />
       </div>
       
       <h3 className="text-base font-medium text-[#F7F8F8] mb-2 leading-6">
