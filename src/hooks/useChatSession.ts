@@ -401,14 +401,22 @@ export function useChatSession() {
               break;
           }
         } catch (err) {
-          console.error('Failed to parse WebSocket message:', err);
-          setMessages((prev) => [...prev, { 
-            id: Date.now().toString(), 
-            type: 'error', 
-            content: 'Invalid message received' 
-          }]);
-          setIsBusy(false);
-          clearStatus();
+          // Check if it's a JSON parsing error (SyntaxError)
+          if (err instanceof SyntaxError) {
+            // Silently ignore malformed JSON, but log for debugging
+            console.warn('Ignoring malformed JSON message:', err.message);
+            console.warn('Raw message data:', event.data);
+          } else {
+            // Handle other types of errors normally
+            console.error('Failed to process WebSocket message:', err);
+            setMessages((prev) => [...prev, { 
+              id: Date.now().toString(), 
+              type: 'error', 
+              content: 'Failed to process message' 
+            }]);
+            setIsBusy(false);
+            clearStatus();
+          }
         }
       };
 
