@@ -32,10 +32,10 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   } = buttonProps;
 
   return (
-    <div className={`group bg-[#101117] border border-white/12 rounded-2xl p-6 text-left transition-all duration-300 ${
+    <div className={`group bg-[#101117] border border-[rgba(255,255,255,0.12)] rounded-2xl p-6 text-left transition-all duration-300 ${
       isActive 
         ? 'hover:border-accent/30 shadow-[0px_12px_12px_rgba(0,0,0,0.12)] hover:shadow-lg hover:shadow-accent/10' 
-        : 'hover:border-white/[0.2] shadow-[0px_12px_12px_rgba(0,0,0,0.12)]'
+        : 'hover:border-[rgba(255,255,255,0.2)] shadow-[0px_12px_12px_rgba(0,0,0,0.12)]'
     } ${className}`}>
       <div className={`p-2 rounded-xl w-fit mb-3 ${
         isActive ? 'bg-accent/20' : 'bg-text-muted/20'
