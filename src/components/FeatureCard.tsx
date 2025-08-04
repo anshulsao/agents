@@ -3,7 +3,8 @@ import { DivideIcon as LucideIcon } from 'lucide-react';
 import TryNowButton from './TryNowButton';
 
 interface FeatureCardProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  iconSrc?: string;
   title: string;
   description: string;
   isActive?: boolean;
@@ -18,6 +19,7 @@ interface FeatureCardProps {
 
 const FeatureCard: React.FC<FeatureCardProps> = ({
   icon: Icon,
+  iconSrc,
   title,
   description,
   isActive = true,
@@ -40,9 +42,17 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
       <div className={`p-2 rounded-xl w-fit mb-3 ${
         isActive ? 'bg-accent/20' : 'bg-text-muted/20'
       }`}>
-        <Icon className={`h-5 w-5 ${
-          isActive ? 'text-accent' : 'text-text-muted'
-        }`} />
+        {iconSrc ? (
+          <img 
+            src={iconSrc} 
+            alt={`${title} icon`}
+            className="h-5 w-5"
+          />
+        ) : Icon ? (
+          <Icon className={`h-5 w-5 ${
+            isActive ? 'text-accent' : 'text-text-muted'
+          }`} />
+        ) : null}
       </div>
       
       <h3 className="text-base font-medium text-[#F7F8F8] mb-2 leading-6">
