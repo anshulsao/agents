@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({
               to={backTo}
               className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
             >
-              <svg className="h-5 w-5 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-[#8A8F98]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
