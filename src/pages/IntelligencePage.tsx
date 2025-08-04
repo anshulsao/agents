@@ -46,7 +46,7 @@ const IntelligencePage: React.FC = () => {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Kubernetes Expert Card */}
-            <div className="group bg-surface/40 backdrop-blur-md border border-border/30 rounded-2xl p-6 text-left hover:bg-surface/60 hover:border-border-light transition-all duration-300">
+            <div className="group bg-surface/20 backdrop-blur-xl border border-border/40 rounded-xl p-6 text-left hover:bg-surface/30 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300">
               <div className="p-2.5 bg-accent/20 rounded-xl w-fit mb-4">
                 <Bot className="h-6 w-6 text-accent" />
               </div>
@@ -63,7 +63,7 @@ const IntelligencePage: React.FC = () => {
               
               <Link 
                 to="/?agent=kubernetes-expert"
-                className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white font-medium px-4 py-2.5 rounded-lg transition-all duration-200 text-sm"
+                className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg"
               >
                 <Bot className="h-4 w-4" />
                 Try Now
@@ -71,7 +71,7 @@ const IntelligencePage: React.FC = () => {
             </div>
 
             {/* Module Builder Card */}
-            <div className="group bg-surface/40 backdrop-blur-md border border-border/30 rounded-2xl p-6 text-left hover:bg-surface/60 hover:border-border-light transition-all duration-300">
+            <div className="group bg-surface/20 backdrop-blur-xl border border-border/40 rounded-xl p-6 text-left hover:bg-surface/30 hover:border-border-light transition-all duration-300">
               <div className="p-2.5 bg-text-muted/20 rounded-xl w-fit mb-4">
                 <Package className="h-6 w-6 text-text-muted" />
               </div>
@@ -87,7 +87,7 @@ const IntelligencePage: React.FC = () => {
               
               <button 
                 disabled
-                className="inline-flex items-center gap-2 bg-surface/60 hover:bg-surface/80 text-text-muted font-medium px-4 py-2.5 rounded-lg transition-all duration-200 cursor-not-allowed opacity-60 text-sm"
+                className="inline-flex items-center gap-2 bg-surface/40 text-text-muted font-medium px-4 py-2 rounded-lg cursor-not-allowed opacity-60 text-sm border border-border/30"
               >
                 <Package className="h-4 w-4" />
                 Coming Soon
