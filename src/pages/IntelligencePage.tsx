@@ -63,10 +63,29 @@ const IntelligencePage: React.FC = () => {
               
               <Link 
                 to="/?agent=kubernetes-expert"
-                className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 text-sm shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center gap-1 px-2.5 py-1 w-[89px] h-8 text-white font-semibold text-xs rounded-md transition-all duration-200 relative overflow-hidden group"
+                style={{
+                  background: 'linear-gradient(92.88deg, #324BA2 9.16%, #5643CC 43.89%, #673FD7 64.72%)'
+                }}
               >
-                <Bot className="h-4 w-4" />
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <img 
+                    src="/fi.svg" 
+                    alt="Fi Icon" 
+                    className="w-3.5 h-3.5 filter brightness-0 invert" 
+                  />
+                </div>
                 Try Now
+                
+                {/* Shine effect on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div 
+                    className="absolute -left-10 top-0 w-20 h-full transform -skew-x-12 transition-transform duration-700 group-hover:translate-x-32"
+                    style={{
+                      background: 'linear-gradient(74.65deg, rgba(255, 255, 255, 0) 31.83%, rgba(255, 255, 255, 0.5) 37.72%, rgba(255, 255, 255, 0) 45.25%)'
+                    }}
+                  />
+                </div>
               </Link>
             </div>
 
