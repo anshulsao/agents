@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Upload, CheckCircle2, AlertCircle, Menu } from 'lucide-react';
+import IntelligencePage from './pages/IntelligencePage';
 import AgentSelector from './components/AgentSelector';
 import UsageTracker from './components/UsageTracker';
 import MobileMenu from './components/MobileMenu';
@@ -12,7 +14,7 @@ import { useAgents } from './hooks/useAgents';
 import { useChatSession } from './hooks/useChatSession';
 import { getClusterInfo, type ClusterInfo } from './api/api';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const { agents, loading: agentsLoading } = useAgents();
   const {
     currentAgent,
@@ -239,6 +241,15 @@ const App: React.FC = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<MainApp />} />
+      <Route path="/intelligence" element={<IntelligencePage />} />
+    </Routes>
   );
 };
 
