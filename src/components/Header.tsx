@@ -75,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({
               <img 
                 src="/fi.svg" 
                 alt="Fi Icon" 
-                className="h-4 w-5" 
+                className="h-4 w-5 filter brightness-0 invert" 
               />
             </div>
             <h1 className="text-base font-semibold text-gradient hidden sm:block">Intelligence</h1>
