@@ -1,7 +1,7 @@
 import React from 'react';
 import { Bot, Package } from 'lucide-react';
 import Header from '../components/Header';
-import TryNowButton from '../components/TryNowButton';
+import FeatureCard from '../components/FeatureCard';
 
 const IntelligencePage: React.FC = () => {
   return (
@@ -45,50 +45,26 @@ const IntelligencePage: React.FC = () => {
           
           {/* Feature Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Kubernetes Expert Card */}
-            <div className="group bg-surface/20 backdrop-blur-xl border border-border/40 rounded-xl p-6 text-left hover:bg-surface/30 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/10 transition-all duration-300">
-              <div className="p-2.5 bg-accent/20 rounded-xl w-fit mb-4">
-                <Bot className="h-6 w-6 text-accent" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-text-primary mb-3">
-                Kubernetes Expert
-              </h3>
-              
-              <p className="text-text-secondary mb-6 leading-relaxed text-base">
-                Get instant root cause analysis, confident fixes, and proactive 
-                recommendations that turn Kubernetes confusion into smooth 
-                deployments.
-              </p>
-              
-              <TryNowButton
-                to="/?agent=kubernetes-expert"
-              />
-            </div>
+            <FeatureCard
+              icon={Bot}
+              title="Kubernetes Expert"
+              description="Get instant root cause analysis, confident fixes, and proactive recommendations that turn Kubernetes confusion into smooth deployments."
+              isActive={true}
+              buttonProps={{
+                to: "/?agent=kubernetes-expert"
+              }}
+            />
 
-            {/* Module Builder Card */}
-            <div className="group bg-surface/20 backdrop-blur-xl border border-border/40 rounded-xl p-6 text-left hover:bg-surface/30 hover:border-border-light transition-all duration-300">
-              <div className="p-2.5 bg-text-muted/20 rounded-xl w-fit mb-4">
-                <Package className="h-6 w-6 text-text-muted" />
-              </div>
-              
-              <h3 className="text-xl font-bold text-text-primary mb-3">
-                Module Builder
-              </h3>
-              
-              <p className="text-text-secondary mb-6 leading-relaxed text-base">
-                Describe what you need and get production-ready modules 
-                generated instantly, complete with best practices baked in.
-              </p>
-              
-              <button 
-                disabled
-                className="inline-flex items-center gap-2 bg-surface/40 text-text-muted font-medium px-4 py-2 rounded-lg cursor-not-allowed opacity-60 text-sm border border-border/30"
-              >
-                <Package className="h-4 w-4" />
-                Coming Soon
-              </button>
-            </div>
+            <FeatureCard
+              icon={Package}
+              title="Module Builder"
+              description="Describe what you need and get production-ready modules generated instantly, complete with best practices baked in."
+              isActive={false}
+              buttonProps={{
+                disabled: true,
+                text: "Coming Soon"
+              }}
+            />
           </div>
         </div>
       </main>
