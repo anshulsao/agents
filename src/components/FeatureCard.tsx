@@ -38,7 +38,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         : 'hover:border-[rgba(255,255,255,0.2)] shadow-[0px_12px_12px_rgba(0,0,0,0.12)]'
     } ${className}`}>
       <div className={`p-2 rounded-xl w-fit mb-3 ${
-        isActive ? 'bg-accent/20' : 'bg-text-muted/20'
+        isActive ? 'bg-gradient-to-br from-[#6542BF] to-[#717CE1]' : 'bg-text-muted/20'
       }`}>
         <Icon className={`h-5 w-5 ${
           isActive ? 'text-accent' : 'text-text-muted'
