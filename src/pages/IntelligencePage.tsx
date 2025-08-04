@@ -51,7 +51,7 @@ const IntelligencePage: React.FC = () => {
               description="Get instant root cause analysis, confident fixes, and proactive recommendations that turn Kubernetes confusion into smooth deployments."
               isActive={true}
               buttonProps={{
-                to: "/?agent=kubernetes-expert"
+               to: "/#/?agent=kubernetes-expert"
               }}
             />
 
