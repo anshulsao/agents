@@ -202,12 +202,7 @@ const AgentPage: React.FC = () => {
             <InputBar 
               ref={inputRef}
               onSend={sendMessage} 
-              <img 
-                src="/fi.svg" 
-                alt="Fi Icon" 
-                className="h-4 w-5" 
-              />
-              }
+              disabled={!(!showKubeConfig || clusterInfo.connected)}
             />
           </div>
         </div>
