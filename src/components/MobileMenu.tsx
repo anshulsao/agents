@@ -15,6 +15,7 @@ interface MobileMenuProps {
   onAgentChange: (agent: AgentDetail) => void;
   clusterInfo: ClusterInfo;
   onConfigClick: () => void;
+  showKubeConfig: boolean;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
@@ -25,7 +26,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   currentAgent,
   onAgentChange,
   clusterInfo,
-  onConfigClick
+  onConfigClick,
+  showKubeConfig
 }) => {
   const handleConfigClick = () => {
     onConfigClick();
@@ -93,6 +95,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                   </div>
 
                   {/* Cluster Status */}
+                  {showKubeConfig && (
                   <div>
                     <label className="block text-sm font-medium text-text-secondary mb-3">
                       Cluster Connection
@@ -125,6 +128,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                       </div>
                     </button>
                   </div>
+                  )}
                 </div>
               </Dialog.Panel>
             </Transition.Child>

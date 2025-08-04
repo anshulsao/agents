@@ -22,14 +22,11 @@ const StartingPrompts: React.FC<StartingPromptsProps> = ({ agent, onPromptSelect
             Quick Start with {agent.name}
           </h3>
           <p className="text-text-tertiary text-sm max-w-md mx-auto leading-relaxed">
-            {kubeReady 
-              ? "Choose a starting prompt to begin your conversation"
-              : "Upload your kubeconfig to unlock these conversation starters"
-            }
+            Choose a starting prompt to begin your conversation
           </p>
         </div>
 
-        {!kubeReady && (
+        {!kubeReady && agent.name === 'kubernetes-expert' && (
           <div className="mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg text-center">
             <span className="text-sm font-medium text-warning block mb-1">Kubeconfig Required</span>
             <p className="text-xs text-text-tertiary">
@@ -79,7 +76,7 @@ const StartingPrompts: React.FC<StartingPromptsProps> = ({ agent, onPromptSelect
       
         <div className="mt-4 text-center">
           <p className="text-xs text-text-muted">
-            {kubeReady 
+            {kubeReady || agent.name !== 'kubernetes-expert'
               ? "Or type your own message below to start a custom conversation"
               : "Upload your kubeconfig to start chatting"
             }

@@ -37,6 +37,7 @@ const MainApp: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showInspectPanel, setShowInspectPanel] = useState(false);
+  const [showKubeConfig, setShowKubeConfig] = useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
   // Agent selection based on URL parameter or default to first agent
@@ -49,9 +50,11 @@ const MainApp: React.FC = () => {
         const foundAgent = agents.find(agent => agent.name === agentParam);
         if (foundAgent && (!currentAgent || currentAgent.name !== foundAgent.name)) {
           selectAgent(foundAgent);
+          setShowKubeConfig(foundAgent.name === 'kubernetes-expert');
         } else if (!foundAgent && (!currentAgent || currentAgent.name !== agents[0].name)) {
           // If agent not found, fall back to first agent and update URL
           selectAgent(agents[0]);
+          setShowKubeConfig(agents[0].name === 'kubernetes-expert');
           setSearchParams(prev => {
             const newParams = new URLSearchParams(prev);
             newParams.set('agent', agents[0].name);
@@ -61,6 +64,7 @@ const MainApp: React.FC = () => {
       } else if (!currentAgent) {
         // No agent parameter, select first agent and update URL
         selectAgent(agents[0]);
+        setShowKubeConfig(agents[0].name === 'kubernetes-expert');
         setSearchParams(prev => {
           const newParams = new URLSearchParams(prev);
           newParams.set('agent', agents[0].name);
@@ -73,6 +77,7 @@ const MainApp: React.FC = () => {
   // Handle agent selection and update URL parameter
   const handleAgentChange = (agent: typeof agents[0]) => {
     selectAgent(agent);
+    setShowKubeConfig(agent.name === 'kubernetes-expert');
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
       newParams.set('agent', agent.name);
@@ -187,7 +192,7 @@ const MainApp: React.FC = () => {
           </div>
 
           {/* Desktop Cluster Status */}
-          {sessionId && (
+          {sessionId && showKubeConfig && (
             <button
               onClick={openModal}
               className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
@@ -218,6 +223,7 @@ const MainApp: React.FC = () => {
           onAgentChange={handleAgentChange}
           clusterInfo={clusterInfo}
           onConfigClick={openModal}
+          showKubeConfig={showKubeConfig}
         />
 
         {sessionId && (
@@ -240,7 +246,7 @@ const MainApp: React.FC = () => {
           onRespond={respondConfirmation}
           currentAgent={currentAgent}
           onSendMessage={sendMessage}
-          kubeReady={clusterInfo.connected}
+          kubeReady={!showKubeConfig || clusterInfo.connected}
         />
         
         {showInspectPanel && (
@@ -265,9 +271,9 @@ const MainApp: React.FC = () => {
             <InputBar 
               ref={inputRef}
               onSend={sendMessage} 
-              disabled={isBusy || !clusterInfo.connected} 
+              disabled={isBusy || (showKubeConfig && !clusterInfo.connected)} 
               placeholder={
-                !clusterInfo.connected 
+                showKubeConfig && !clusterInfo.connected 
                   ? "Please upload kubeconfig to start chatting..." 
                   : "Ask me anything about your Kubernetes cluster..."
               }
