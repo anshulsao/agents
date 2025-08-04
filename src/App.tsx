@@ -195,10 +195,10 @@ const MainApp: React.FC = () => {
           {sessionId && showKubeConfig && (
             <button
               onClick={openModal}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+              className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                 clusterInfo.connected
-                  ? 'bg-success/10 text-success border border-success/20 hover:bg-success/20'
-                  : 'bg-warning/10 text-warning border border-warning/20 hover:bg-warning/20'
+                  ? 'bg-success/10 text-success border-success/20 hover:bg-success/20'
+                  : 'bg-warning/10 text-warning border-warning/20 hover:bg-warning/20'
               }`}
             >
               {clusterInfo.connected ? (
