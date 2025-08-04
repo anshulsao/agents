@@ -6,7 +6,7 @@ import Header from '../components/Header';
 const IntelligencePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary font-sans">
-      <Header showBackButton={true} backTo="/" />
+      <Header />
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 py-12">
