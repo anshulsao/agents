@@ -152,6 +152,8 @@ const AgentPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-background text-text-primary font-sans overflow-hidden">
       <Header
+        showBackButton={true}
+        backTo="/intelligence"
         agents={agents}
         agentsLoading={agentsLoading}
         currentAgent={currentAgent}
