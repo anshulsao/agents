@@ -38,16 +38,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         : 'hover:border-[rgba(255,255,255,0.2)] shadow-[0px_12px_12px_rgba(0,0,0,0.12)]'
     } ${className}`}>
       <div className={`p-2 rounded-xl w-fit mb-3 ${
-        isActive ? 'bg-gradient-to-br from-[#6542BF] to-[#717CE1]' : 'bg-text-muted/20'
+        isActive ? 'bg-accent/20' : 'bg-text-muted/20'
       }`}>
         <Icon className={`h-5 w-5 ${
-          isActive ? 'text-white' : 'text-text-muted'
-        }`} style={isActive ? {
-          background: 'linear-gradient(135deg, #6542BF 0%, #717CE1 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        } : undefined} />
+          isActive ? 'text-accent' : 'text-text-muted'
+        }`} />
       </div>
       
       <h3 className="text-base font-medium text-[#F7F8F8] mb-2 leading-6">
