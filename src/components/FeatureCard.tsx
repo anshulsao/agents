@@ -37,12 +37,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         ? 'hover:border-accent/30 hover:shadow-lg hover:shadow-accent/10' 
         : 'hover:border-border-light'
     } ${className}`}>
-      <div className={`p-2 rounded-xl w-fit mb-3 ${
-        isActive ? 'bg-accent/20' : 'bg-text-muted/20'
-      }`}>
-        <Icon className={`h-5 w-5 ${
-          isActive ? 'text-accent' : 'text-text-muted'
-        }`} />
+      <div className="w-12 h-12 bg-white/[0.04] rounded-[10px] flex items-center justify-center mb-3 relative">
+        <Icon className="h-6 w-6 text-transparent bg-gradient-to-br from-[#6542BF] to-[#717CE1] bg-clip-text" 
+              style={{
+                background: 'linear-gradient(135deg, #6542BF 0%, #717CE1 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }} />
       </div>
       
       <h3 className="text-lg font-bold text-text-primary mb-2">
