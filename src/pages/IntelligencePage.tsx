@@ -23,7 +23,7 @@ const IntelligencePage: React.FC = () => {
       <main className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="text-center max-w-4xl mx-auto">
           {/* Top Badge */}
-          <div className="inline-flex items-center px-4 py-2 bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.05)] rounded-full text-[13px] font-medium leading-[28px] text-[#F7F8F8] mb-8">
+          <div className="inline-flex items-center px-3 py-0 bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.05)] rounded-full text-[13px] font-medium leading-[28px] text-[#F7F8F8] mb-8">
             Stop Fighting Your Infrastructure
           </div>
           
