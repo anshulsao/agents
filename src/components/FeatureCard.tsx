@@ -45,7 +45,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         }`} />
       </div>
       
-      <h3 className="text-lg font-bold text-text-primary mb-2">
+      <h3 className="text-base font-medium text-[#F7F8F8] mb-2 leading-6">
         {title}
       </h3>
       
