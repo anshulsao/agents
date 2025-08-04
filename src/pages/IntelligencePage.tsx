@@ -38,7 +38,7 @@ const IntelligencePage: React.FC = () => {
           </h1>
           
           {/* Hero Subtitle */}
-          <p className="text-lg md:text-xl text-text-tertiary mb-12 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-text-tertiary mb-24 leading-relaxed max-w-3xl mx-auto">
             No more 3am debugging, cryptic error messages, or deployment panic. Get
             instant expert guidance for every infrastructure challenge.
           </p>
