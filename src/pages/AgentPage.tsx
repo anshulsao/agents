@@ -202,11 +202,11 @@ const AgentPage: React.FC = () => {
             <InputBar 
               ref={inputRef}
               onSend={sendMessage} 
-              disabled={isBusy || (showKubeConfig && !clusterInfo.connected)} 
-              placeholder={
-                showKubeConfig && !clusterInfo.connected 
-                  ? "Please upload kubeconfig to start chatting..." 
-                  : "Ask me anything about your Kubernetes cluster..."
+              <img 
+                src="/fi.svg" 
+                alt="Fi Icon" 
+                className="h-4 w-5" 
+              />
               }
             />
           </div>
