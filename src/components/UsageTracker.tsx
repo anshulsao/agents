@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Coins, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { getUserInfo, getUsageTracker, type UserInfo, type UsageTracker } from '../api/api';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const UsageTrackerComponent: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -80,57 +79,48 @@ const UsageTrackerComponent: React.FC = () => {
   };
 
   return (
-    <TooltipProvider>
-      <div className="relative">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              onMouseEnter={() => setIsExpanded(true)}
-              onMouseLeave={() => setIsExpanded(false)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
-            >
-              {isExpanded ? (
-                <span className={`text-xs font-medium ${getIconColor()}`}>Credits</span>
-              ) : (
-                <Coins className={`h-4 w-4 ${getIconColor()}`} />
-              )}
-              
-              {isExpanded && (
-                <>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className={`font-medium ${getStatusColor()}`}>
-                      {formatCurrency(usage.used_amount)}
-                    </span>
-                    <span className="text-text-muted">/</span>
-                    <span className="text-text-secondary">
-                      {formatCurrency(usage.plan.dollar_limit)}
-                    </span>
-                  </div>
-
-                  {/* Usage bar */}
-                  <div className="w-8 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full transition-all duration-300 ${
-                        isOverLimit ? 'bg-error' : isNearLimit ? 'bg-warning' : 'bg-success'
-                      }`}
-                      style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                    />
-                  </div>
-
-                  <span className={`text-xs font-medium ${getStatusColor()}`}>
-                    {usagePercentage.toFixed(0)}%
-                  </span>
-                </>
-              )}
-              
+    <div className="relative">
+      <div
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
+      >
+        {isExpanded ? (
+          <span className={`text-xs font-medium ${getIconColor()}`}>Credits</span>
+        ) : (
+          <Coins className={`h-4 w-4 ${getIconColor()}`} />
+        )}
+        
+        {isExpanded && (
+          <>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className={`font-medium ${getStatusColor()}`}>
+                {formatCurrency(usage.used_amount)}
+              </span>
+              <span className="text-text-muted">/</span>
+              <span className="text-text-secondary">
+                {formatCurrency(usage.plan.dollar_limit)}
+              </span>
             </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <p className="text-xs">Credits Balance</p>
-          </TooltipContent>
-        </Tooltip>
+
+            {/* Usage bar */}
+            <div className="w-8 h-1.5 bg-background-tertiary rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-300 ${
+                  isOverLimit ? 'bg-error' : isNearLimit ? 'bg-warning' : 'bg-success'
+                }`}
+                style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+              />
+            </div>
+
+            <span className={`text-xs font-medium ${getStatusColor()}`}>
+              {usagePercentage.toFixed(0)}%
+            </span>
+          </>
+        )}
+        
       </div>
-    </TooltipProvider>
+    </div>
   );
 };
 
