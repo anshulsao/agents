@@ -470,26 +470,35 @@ export function useChatSession() {
       };
 
       socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+        // Handle multiple JSON objects in a single message
+        const rawData = event.data.trim();
+        if (!rawData) return;
 
-          // Handle pong responses
-          if (data.type === 'pong') {
-            return; // Just acknowledgment of our ping
-          }
+        // Split by newlines in case multiple JSON objects are sent
+        const lines = rawData.split('\n').filter(line => line.trim());
+        
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
 
-          handleWebSocketMessage(data);
-        } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
-          console.error('Raw message data:', event.data);
-          
-          // Only show error to user if it's not just empty/whitespace
-          if (event.data && event.data.trim()) {
-            setMessages(prev => [...prev, {
-              id: Date.now().toString(),
-              type: 'error',
-              content: `Failed to parse server message: ${event.data.substring(0, 100)}${event.data.length > 100 ? '...' : ''}`
-            }]);
+            // Handle pong responses
+            if (data.type === 'pong') {
+              continue; // Just acknowledgment of our ping
+            }
+
+            handleWebSocketMessage(data);
+          } catch (error) {
+            console.error('Failed to parse WebSocket message line:', error);
+            console.error('Raw line data:', line);
+            
+            // Only show error to user if it's not just empty/whitespace
+            if (line && line.trim()) {
+              setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                type: 'error',
+                content: `Failed to parse server message: ${line.substring(0, 100)}${line.length > 100 ? '...' : ''}`
+              }]);
+            }
           }
         }
       };
