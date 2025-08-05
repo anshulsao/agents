@@ -58,7 +58,7 @@ const UsageTrackerComponent: React.FC = () => {
   const isNearLimit = usagePercentage > 80;
   const isOverLimit = usagePercentage > 100;
 
-  const formatCurrency = (amount: number) => `$${amount.toFixed(3)}`;
+  const formatCurrency = (amount: number) => amount.toFixed(3);
 
   const getStatusColor = () => {
     if (isOverLimit) return 'text-error';
