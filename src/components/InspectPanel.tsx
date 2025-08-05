@@ -55,6 +55,7 @@ const InspectPanel: React.FC<InspectPanelProps> = ({ packets, onClose }) => {
           packets.map((pkt, idx) => {
             const isExpanded = expandedPackets.has(idx);
             const packetContent = JSON.stringify(pkt, null, 2);
+            const timestamp = pkt.timestamp ? new Date(pkt.timestamp).toLocaleTimeString() : '';
             
             return (
               <div key={idx} className="bg-surface rounded-xl border border-border overflow-hidden">
@@ -69,11 +70,16 @@ const InspectPanel: React.FC<InspectPanelProps> = ({ packets, onClose }) => {
                       <ChevronRight className="h-4 w-4 text-text-tertiary" />
                     )}
                     <span className="text-sm font-medium text-text-primary">
-                      {pkt.summary || pkt.type || `Packet ${idx + 1}`}
+                      {pkt.type || `Packet ${idx + 1}`}
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-2">
+                    {timestamp && (
+                      <span className="text-xs text-text-muted">
+                        {timestamp}
+                      </span>
+                    )}
                     <span className="text-xs text-text-muted bg-background-tertiary px-2 py-1 rounded">
                       {pkt.type || 'unknown'}
                     </span>

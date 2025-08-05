@@ -25,6 +25,7 @@ const AgentPage: React.FC = () => {
     isConnected,
     reconnectAttempts,
     hasSentFirstMessage,
+    rawMessages,
   } = useChatSession();
 
   const [clusterInfo, setClusterInfo] = useState<ClusterInfo>({ name: '', connected: false });
@@ -183,7 +184,7 @@ const AgentPage: React.FC = () => {
         
         {showInspectPanel && (
           <InspectPanel 
-            packets={messages} 
+            packets={rawMessages} 
             onClose={() => setShowInspectPanel(false)}
           />
         )}

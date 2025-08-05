@@ -29,6 +29,7 @@ export function useChatSession() {
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [hasSentFirstMessage, setHasSentFirstMessage] = useState<boolean>(false);
   const [isCreatingSession, setIsCreatingSession] = useState<boolean>(false);
+  const [rawMessages, setRawMessages] = useState<any[]>([]);
 
   // Refs for managing state and avoiding stale closures
   const wsRef = useRef<WebSocket | null>(null);
@@ -223,6 +224,12 @@ export function useChatSession() {
 
   // WebSocket message handlers
   const handleWebSocketMessage = useCallback((data: any) => {
+    // Capture raw message for inspector
+    setRawMessages(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      ...data
+    }]);
+
     switch (data.type) {
       case 'error':
         finalizeToolGroup();
@@ -616,6 +623,7 @@ export function useChatSession() {
     isConnected: connectionState === 'connected',
     connectionState,
     hasSentFirstMessage,
+    rawMessages,
 
     // Actions
     selectAgent,
