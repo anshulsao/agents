@@ -32,7 +32,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onResp
         ref={containerRef}
         className="flex-1 overflow-y-auto px-6 py-6 flex justify-center"
       >
-        <div className="w-full max-w-4xl space-y-6">
+        <div className="w-full max-w-4xl space-y-4">
           {messages.length === 0 ? (
             <div className="flex-1 flex items-center justify-center min-h-[60vh]">
               <div className="w-full">
@@ -56,7 +56,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, confirmations, onResp
               </div>
             </div>
           ) : (
-            <div className="space-y-6 w-full">
+            <div className="space-y-4 w-full">
               {messages.map((msg) => (
                 <Message key={msg.id} message={msg} agentName={currentAgent?.name || null} />
               ))}

@@ -9,6 +9,7 @@ export type Message = {
   args?: any;
   tools?: any[];
   summary?: string;
+  agentName?: string;
 };
 
 type Confirmation = {
@@ -16,7 +17,7 @@ type Confirmation = {
   command: string;
 };
 
-type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'failed';
+type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'failed';
 
 export function useChatSession() {
   // Core state - session persists throughout page lifecycle
@@ -25,6 +26,8 @@ export function useChatSession() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [confirmations, setConfirmations] = useState<Confirmation[]>([]);
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+  const [reconnectAttempts, setReconnectAttempts] = useState<number>(0);
+  const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
   const [status, setStatus] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState<boolean>(false);
   const [hasSentFirstMessage, setHasSentFirstMessage] = useState<boolean>(false);
@@ -39,9 +42,15 @@ export function useChatSession() {
   const pendingMessageRef = useRef<string | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const currentAgentRef = useRef<AgentDetail | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef<number>(0);
+  const hasSentFirstMessageRef = useRef<boolean>(false);
+  const connectionStateRef = useRef<ConnectionState>('disconnected');
 
   const HEARTBEAT_INTERVAL = 30000; // 30 seconds
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const BASE_RECONNECT_DELAY = 2000;
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -52,6 +61,42 @@ export function useChatSession() {
     currentAgentRef.current = currentAgent;
   }, [currentAgent]);
 
+  useEffect(() => {
+    reconnectAttemptsRef.current = reconnectAttempts;
+  }, [reconnectAttempts]);
+  
+  useEffect(() => {
+    hasSentFirstMessageRef.current = hasSentFirstMessage;
+  }, [hasSentFirstMessage]);
+  
+  useEffect(() => {
+    connectionStateRef.current = connectionState;
+  }, [connectionState]);
+
+  // Session validation function
+  const validateSession = useCallback(async (sessionId: string): Promise<{valid: boolean, agentName?: string}> => {
+    try {
+      const response = await fetch(`/ai-api/chat/session/${sessionId}/resume`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        return { valid: false };
+      }
+      
+      const data = await response.json();
+      return { 
+        valid: data.session_valid, 
+        agentName: data.agent_name 
+      };
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      return { valid: false };
+    }
+  }, []);
+
   // Cleanup function
   const cleanup = useCallback(() => {
     if (statusTimeoutRef.current) {
@@ -61,6 +106,10 @@ export function useChatSession() {
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current);
       heartbeatIntervalRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
     }
     if (wsRef.current) {
       wsRef.current.close(1000, 'Component cleanup');
@@ -241,7 +290,8 @@ export function useChatSession() {
             return [...prev, {
               id: Date.now().toString(),
               type: 'message',
-              content: data.payload.message
+              content: data.payload.message,
+              agentName: currentAgentRef.current?.name || 'Assistant'
             }];
           });
         } else {
@@ -263,6 +313,7 @@ export function useChatSession() {
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage?.type === 'reasoning') {
+            // Append to existing reasoning message
             const newMessages = [...prev];
             newMessages[newMessages.length - 1] = {
               ...lastMessage,
@@ -270,6 +321,7 @@ export function useChatSession() {
             };
             return newMessages;
           } else {
+            // Create new reasoning message
             updateStatus('Thinking...');
             return [...prev, {
               id: Date.now().toString(),
@@ -351,6 +403,67 @@ export function useChatSession() {
     }
   }, []);
 
+  // Reconnection logic
+  const attemptReconnection = useCallback(async (): Promise<boolean> => {
+    if (!sessionIdRef.current || !currentAgentRef.current || isReconnecting) {
+      return false;
+    }
+
+    if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+      setConnectionState('failed');
+      updateStatus('Maximum reconnection attempts reached - Click to start new session');
+      return false;
+    }
+
+    setIsReconnecting(true);
+    const newAttemptCount = reconnectAttemptsRef.current + 1;
+    setReconnectAttempts(newAttemptCount);
+    reconnectAttemptsRef.current = newAttemptCount;
+    setConnectionState('reconnecting');
+    updateStatus(`Reconnecting... (${newAttemptCount}/${MAX_RECONNECT_ATTEMPTS})`);
+
+    try {
+      // Validate session first
+      const validation = await validateSession(sessionIdRef.current);
+      
+      if (!validation.valid) {
+        console.log('Session no longer valid, cannot reconnect');
+        setIsReconnecting(false);
+        setConnectionState('failed');
+        updateStatus('Session expired - Click to start new session');
+        // Clear the invalid session
+        setSessionId(null);
+        sessionIdRef.current = null;
+        setReconnectAttempts(0);
+        reconnectAttemptsRef.current = 0;
+        return false;
+      }
+
+      // Session is valid, wait with exponential backoff
+      const delay = BASE_RECONNECT_DELAY * Math.pow(1.5, reconnectAttemptsRef.current - 1);
+      console.log(`Waiting ${delay}ms before reconnecting (attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      setIsReconnecting(false);
+      return true;
+    } catch (error) {
+      console.error('Reconnection attempt failed:', error);
+      setIsReconnecting(false);
+      return false;
+    }
+  }, [validateSession, isReconnecting, updateStatus]);
+
+  // Reset reconnect attempts on successful connection
+  const resetReconnection = useCallback(() => {
+    setReconnectAttempts(0);
+    reconnectAttemptsRef.current = 0;
+    setIsReconnecting(false);
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  }, []);
+
 
   // WebSocket connection management - reuses existing session
   const connectWebSocket = useCallback((sessionId: string, agent: AgentDetail, initialMessage?: string) => {
@@ -378,8 +491,9 @@ export function useChatSession() {
       wsRef.current = socket;
 
       socket.onopen = () => {
-        console.log('WebSocket connected');
+        console.log('WebSocket connected successfully');
         setConnectionState('connected');
+        resetReconnection();
         updateStatus('Ready');
         startHeartbeat();
 
@@ -395,6 +509,7 @@ export function useChatSession() {
           setIsBusy(true);
           updateStatus('Processing...');
           setHasSentFirstMessage(true);
+          hasSentFirstMessageRef.current = true;
         }
 
         // Send pending message if exists
@@ -429,26 +544,104 @@ export function useChatSession() {
         console.log('WebSocket closed:', event.code, event.reason);
         wsRef.current = null;
         stopHeartbeat();
-        setConnectionState('disconnected');
         setIsBusy(false);
-        updateStatus('Disconnected - Click to start new session');
+
+        // Determine if we should attempt reconnection
+        const shouldReconnect: Record<number, boolean> = {
+          1006: true,  // Abnormal closure
+          1011: true,  // Server error
+          1001: false, // Going away
+          1000: false, // Normal closure
+          4408: false, // Usage limit (don't reconnect)
+          4401: false, // Kubeconfig error
+          1008: false, // Invalid session
+        };
 
         // Handle specific close codes
         if (event.code === 4408) {
-          // Usage limit reached
+          // Usage limit reached - don't reconnect
+          setConnectionState('failed');
+          updateStatus('Usage limit reached - Click to start new session');
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
             type: 'message',
             content: '**Usage Limit Reached**\n\nYou\'ve reached your current usage limit. To continue using Intelligence, please upgrade your plan for higher limits and priority access.\n\n[Contact your administrator to upgrade your plan](mailto:support@facets.cloud?subject=Intelligence%20Plan%20Upgrade%20Request)'
           }]);
+          return;
+        }
+
+        if (event.code === 4401) {
+          setConnectionState('failed');
+          updateStatus('Kubeconfig required - Click to start new session');
+          return;
+        }
+
+        if (event.code === 1008) {
+          setConnectionState('failed');
+          updateStatus('Invalid session - Click to start new session');
+          return;
+        }
+
+        // Determine if should reconnect based on current code
+        // Default to true for unknown codes (undefined in shouldReconnect)
+        const codeToCheck = event.code || 1006; // Default to abnormal closure if no code
+        const shouldReconnectCode = shouldReconnect[codeToCheck as keyof typeof shouldReconnect] ?? true;
+        
+        console.log(`WebSocket close event:`, {
+          code: event.code,
+          reason: event.reason,
+          shouldReconnectCode,
+          hasSentFirstMessage: hasSentFirstMessageRef.current,
+          sessionId: sessionIdRef.current,
+          reconnectAttempts: reconnectAttemptsRef.current
+        });
+        
+        // Attempt reconnection for recoverable errors
+        if (shouldReconnectCode && hasSentFirstMessageRef.current && sessionIdRef.current) {
+          console.log(`Attempting reconnection...`);
+          setConnectionState('reconnecting');
+          
+          // Start reconnection attempt after a brief delay
+          reconnectTimeoutRef.current = setTimeout(async () => {
+            const success = await attemptReconnection();
+            if (success && sessionIdRef.current && currentAgentRef.current) {
+              connectWebSocket(sessionIdRef.current, currentAgentRef.current);
+            }
+            // If reconnection fails, attemptReconnection will handle the status update
+          }, 1000);
+        } else {
+          console.log(`Not attempting reconnection. Reasons:`, {
+            shouldReconnectCode,
+            hasSentFirstMessage: hasSentFirstMessageRef.current,
+            sessionId: sessionIdRef.current
+          });
+          setConnectionState('disconnected');
+          updateStatus('Disconnected - Click to start new session');
         }
       };
 
       socket.onerror = (error) => {
         console.error('WebSocket error:', error);
         stopHeartbeat();
-        setConnectionState('failed');
-        updateStatus('Connection failed - Click to start new session');
+        
+        // Only trigger reconnection if we haven't already started reconnecting
+        if (connectionStateRef.current !== 'reconnecting' && hasSentFirstMessageRef.current && sessionIdRef.current) {
+          console.log('WebSocket error, attempting reconnection...');
+          setConnectionState('reconnecting');
+          updateStatus('Connection error - attempting to reconnect...');
+          
+          // Start reconnection attempt after a brief delay
+          reconnectTimeoutRef.current = setTimeout(async () => {
+            const success = await attemptReconnection();
+            if (success && sessionIdRef.current && currentAgentRef.current) {
+              connectWebSocket(sessionIdRef.current, currentAgentRef.current);
+            }
+            // If reconnection fails, attemptReconnection will handle the status update
+          }, 1000);
+        } else if (connectionStateRef.current !== 'reconnecting') {
+          setConnectionState('failed');
+          updateStatus('Connection failed - Click to start new session');
+        }
       };
 
     } catch (error) {
@@ -456,7 +649,7 @@ export function useChatSession() {
       setConnectionState('failed');
       updateStatus('Failed to establish connection - Click to start new session');
     }
-  }, [handleWebSocketMessage, updateStatus, startHeartbeat, stopHeartbeat]);
+  }, [handleWebSocketMessage, updateStatus, startHeartbeat, stopHeartbeat, attemptReconnection, resetReconnection]);
 
   // Agent selection - DOES NOT create new session, just updates current agent
   const selectAgent = useCallback((agent: AgentDetail) => {
@@ -550,6 +743,10 @@ export function useChatSession() {
     selectAgent,
     sendMessage,
     respondConfirmation,
-    restartSession
+    restartSession,
+    
+    // Reconnection state
+    reconnectAttempts,
+    isReconnecting
   };
 }

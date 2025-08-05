@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Activity, Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { Loader2, Activity, Wifi, WifiOff, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface StatusIndicatorProps {
   status: string | null;
@@ -7,6 +7,9 @@ interface StatusIndicatorProps {
   isConnected?: boolean;
   hasSentFirstMessage?: boolean;
   onRestartSession?: () => void;
+  reconnectAttempts?: number;
+  isReconnecting?: boolean;
+  connectionState?: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'failed';
 }
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({ 
@@ -14,12 +17,45 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   isBusy = false, 
   isConnected = true,
   hasSentFirstMessage = false,
-  onRestartSession
+  onRestartSession,
+  reconnectAttempts = 0,
+  isReconnecting = false,
+  connectionState = 'disconnected'
 }) => {
   // Always show status indicator, but content varies based on state
   
-  // Show disconnected status with clickable CTA (only after first message)
-  if (hasSentFirstMessage && !isConnected) {
+  // Debug logging
+  if (connectionState !== 'connected') {
+    console.log('StatusIndicator state:', {
+      connectionState,
+      isReconnecting,
+      reconnectAttempts,
+      isConnected,
+      hasSentFirstMessage
+    });
+  }
+  
+  // Show reconnecting state with spinner
+  if (connectionState === 'reconnecting' || isReconnecting) {
+    const maxAttempts = 5;
+    return (
+      <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <RefreshCw className="h-4 w-4 animate-spin text-amber-600" />
+          <span className="font-medium text-amber-600">
+            Reconnecting... ({reconnectAttempts}/{maxAttempts})
+          </span>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show disconnected status with appropriate CTA (only after first message)
+  // Don't show this if we're in a reconnecting state
+  if (hasSentFirstMessage && !isConnected && connectionState !== 'reconnecting') {
+    const maxAttempts = 5;
+    const canReconnect = reconnectAttempts < maxAttempts;
+    
     return (
       <div className="flex items-center gap-3 text-sm">
         <div className="flex items-center gap-2">
@@ -28,7 +64,10 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
             onClick={onRestartSession}
             className="font-medium text-red-600 hover:text-red-700 underline underline-offset-2 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
           >
-            Disconnected - Click to start new session
+            {canReconnect && reconnectAttempts > 0
+              ? `Connection lost after ${reconnectAttempts} attempts - Click to start new session`
+              : 'Connection failed - Click to start new session'
+            }
           </button>
         </div>
       </div>
@@ -38,19 +77,36 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   // Show activity status when there's a status message or when busy
   if (status || isBusy) {
     // Check if status contains disconnected/failed messages and make them clickable
-    const isDisconnectedStatus = status && (status.includes('Disconnected') || status.includes('failed'));
+    const isDisconnectedStatus = status && (
+      status.includes('Disconnected') || 
+      status.includes('failed') || 
+      status.includes('Usage limit') ||
+      status.includes('Kubeconfig') ||
+      status.includes('Invalid session')
+    );
+    
+    const isReconnectingStatus = status && (
+      status.includes('Reconnecting') ||
+      status.includes('attempting to reconnect')
+    );
     
     return (
       <div className="flex items-center gap-3 text-sm text-text-tertiary">
         <div className="flex items-center gap-2">
           {isBusy ? (
             <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          ) : isReconnectingStatus ? (
+            <RefreshCw className="h-4 w-4 animate-spin text-amber-600" />
           ) : isDisconnectedStatus ? (
             <WifiOff className="h-4 w-4 text-red-600" />
           ) : (
             <Activity className="h-4 w-4 text-success animate-pulse-soft" />
           )}
-          {isDisconnectedStatus && onRestartSession ? (
+          {isReconnectingStatus ? (
+            <span className="font-medium text-amber-600">
+              {status}
+            </span>
+          ) : isDisconnectedStatus && onRestartSession ? (
             <button 
               onClick={onRestartSession}
               className="font-medium text-red-600 hover:text-red-700 underline underline-offset-2 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
