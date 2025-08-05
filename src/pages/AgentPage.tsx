@@ -23,9 +23,9 @@ const AgentPage: React.FC = () => {
     status,
     isBusy,
     isConnected,
-    reconnectAttempts,
     hasSentFirstMessage,
     rawMessages,
+    restartSession,
   } = useChatSession();
 
   const [clusterInfo, setClusterInfo] = useState<ClusterInfo>({ name: '', connected: false });
@@ -198,8 +198,8 @@ const AgentPage: React.FC = () => {
               status={status} 
               isBusy={isBusy} 
               isConnected={isConnected}
-              reconnectAttempts={reconnectAttempts}
               hasSentFirstMessage={hasSentFirstMessage}
+              onRestartSession={restartSession}
             />
             <InputBar 
               ref={inputRef}

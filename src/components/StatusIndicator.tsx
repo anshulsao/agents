@@ -5,40 +5,31 @@ interface StatusIndicatorProps {
   status: string | null;
   isBusy?: boolean;
   isConnected?: boolean;
-  reconnectAttempts?: number;
   hasSentFirstMessage?: boolean;
+  onRestartSession?: () => void;
 }
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({ 
   status, 
   isBusy = false, 
   isConnected = true,
-  reconnectAttempts = 0,
-  hasSentFirstMessage = false
+  hasSentFirstMessage = false,
+  onRestartSession
 }) => {
   // Always show status indicator, but content varies based on state
   
-  // Show connection status if disconnected or reconnecting (only after first message)
-  if (hasSentFirstMessage && !isConnected && reconnectAttempts > 0) {
+  // Show disconnected status with clickable CTA (only after first message)
+  if (hasSentFirstMessage && !isConnected) {
     return (
       <div className="flex items-center gap-3 text-sm">
         <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-warning" />
-          <span className="font-medium text-warning">
-            Reconnecting... ({reconnectAttempts}/5)
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  // Show disconnected status only when not connected and not actively reconnecting
-  if (hasSentFirstMessage && !isConnected && reconnectAttempts === 0) {
-    return (
-      <div className="flex items-center gap-3 text-sm">
-        <div className="flex items-center gap-2">
-          <WifiOff className="h-4 w-4 text-error" />
-          <span className="font-medium text-error">Disconnected</span>
+          <WifiOff className="h-4 w-4 text-red-600" />
+          <button 
+            onClick={onRestartSession}
+            className="font-medium text-red-600 hover:text-red-700 underline underline-offset-2 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+          >
+            Disconnected - Click to start new session
+          </button>
         </div>
       </div>
     );
@@ -46,17 +37,31 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
 
   // Show activity status when there's a status message or when busy
   if (status || isBusy) {
+    // Check if status contains disconnected/failed messages and make them clickable
+    const isDisconnectedStatus = status && (status.includes('Disconnected') || status.includes('failed'));
+    
     return (
       <div className="flex items-center gap-3 text-sm text-text-tertiary">
         <div className="flex items-center gap-2">
           {isBusy ? (
             <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          ) : isDisconnectedStatus ? (
+            <WifiOff className="h-4 w-4 text-red-600" />
           ) : (
             <Activity className="h-4 w-4 text-success animate-pulse-soft" />
           )}
-          <span className="font-medium">
-            {status || (isBusy ? 'Processing...' : 'Ready')}
-          </span>
+          {isDisconnectedStatus && onRestartSession ? (
+            <button 
+              onClick={onRestartSession}
+              className="font-medium text-red-600 hover:text-red-700 underline underline-offset-2 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+            >
+              {status}
+            </button>
+          ) : (
+            <span className="font-medium">
+              {status || (isBusy ? 'Processing...' : 'Ready')}
+            </span>
+          )}
         </div>
         
         {isBusy && (
