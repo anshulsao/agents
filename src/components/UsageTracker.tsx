@@ -90,11 +90,11 @@ const UsageTrackerComponent: React.FC = () => {
           <>
             <div className="flex items-center gap-1.5 text-xs">
               <span className={`font-medium ${getStatusColor()}`}>
-                {formatCurrency(usage.used_amount)} credits
+                {formatCurrency(usage.used_amount)}
               </span>
               <span className="text-text-muted">/</span>
               <span className="text-text-secondary">
-                {formatCurrency(usage.plan.dollar_limit)} credits
+                {formatCurrency(usage.plan.dollar_limit)}
               </span>
             </div>
 
