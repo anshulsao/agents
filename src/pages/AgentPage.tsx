@@ -204,8 +204,8 @@ const AgentPage: React.FC = () => {
             <InputBar 
               ref={inputRef}
               onSend={sendMessage} 
+              disabled={!(!showKubeConfig || clusterInfo.connected)}
               sendButtonDisabled={isBusy}
-              kubeReady={!showKubeConfig || clusterInfo.connected}
             />
           </div>
         </div>
