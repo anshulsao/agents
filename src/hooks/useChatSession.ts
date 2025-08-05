@@ -225,31 +225,37 @@ export function useChatSession() {
   };
 
   const selectAgent = (agent: AgentDetail) => {
+    // If we're selecting the same agent that's already current, do nothing
+    // This prevents unnecessary session resets during reconnection or re-renders
+    if (currentAgent && currentAgent.name === agent.name) {
+      // Just update the ref to ensure it's current
+      agentRef.current = agent;
+      return;
+    }
+    
     setCurrentAgent(agent);
     agentRef.current = agent;
     
-    // Only reset session if we're actually changing agents
-    if (!currentAgent || currentAgent.name !== agent.name) {
-      setSessionId(null);
-      setMessages([]);
-      setPackets([]);
-      setConfirmations([]);
-      setIsConnected(false);
-      resetReconnection();
-      setHasSentFirstMessage(false);
-      clearStatus();
-      setIsBusy(false);
-      streamingIndex.current = null;
-      toolGroupIndex.current = null;
-      
-      if (statusTimerRef.current) {
-        clearTimeout(statusTimerRef.current);
-        statusTimerRef.current = null;
-      }
-      if (ws.current) {
-        ws.current.close();
-        ws.current = null;
-      }
+    // Reset session and state when changing to a different agent
+    setSessionId(null);
+    setMessages([]);
+    setPackets([]);
+    setConfirmations([]);
+    setIsConnected(false);
+    resetReconnection();
+    setHasSentFirstMessage(false);
+    clearStatus();
+    setIsBusy(false);
+    streamingIndex.current = null;
+    toolGroupIndex.current = null;
+    
+    if (statusTimerRef.current) {
+      clearTimeout(statusTimerRef.current);
+      statusTimerRef.current = null;
+    }
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
     }
   };
 
