@@ -84,8 +84,9 @@ const UsageTrackerComponent: React.FC = () => {
       <div className="relative">
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
+            <div
+              onMouseEnter={() => setIsExpanded(true)}
+              onMouseLeave={() => setIsExpanded(false)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
             >
               {isExpanded ? (
@@ -122,7 +123,7 @@ const UsageTrackerComponent: React.FC = () => {
                 </>
               )}
               
-            </button>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <p className="text-xs">Credits Balance</p>
