@@ -339,7 +339,7 @@ export function useChatSession() {
         }
         break;
     }
-  }, [finalizeToolGroup, updateStatus, createToolGroup, addToolToGroup]);
+  }, [finalizeToolGroup, updateStatus, addToolToGroup]);
 
   // Heartbeat management
   const startHeartbeat = useCallback(() => {
@@ -470,35 +470,29 @@ export function useChatSession() {
       };
 
       socket.onmessage = (event) => {
-        // Handle multiple JSON objects in a single message
         const rawData = event.data.trim();
         if (!rawData) return;
 
-        // Split by newlines in case multiple JSON objects are sent
-        const lines = rawData.split('\n').filter(line => line.trim());
-        
-        for (const line of lines) {
-          try {
-            const data = JSON.parse(line);
+        try {
+          const data = JSON.parse(rawData);
 
-            // Handle pong responses
-            if (data.type === 'pong') {
-              continue; // Just acknowledgment of our ping
-            }
+          // Handle pong responses
+          if (data.type === 'pong') {
+            return; // Just acknowledgment of our ping
+          }
 
-            handleWebSocketMessage(data);
-          } catch (error) {
-            console.error('Failed to parse WebSocket message line:', error);
-            console.error('Raw line data:', line);
-            
-            // Only show error to user if it's not just empty/whitespace
-            if (line && line.trim()) {
-              setMessages(prev => [...prev, {
-                id: Date.now().toString(),
-                type: 'error',
-                content: `Failed to parse server message: ${line.substring(0, 100)}${line.length > 100 ? '...' : ''}`
-              }]);
-            }
+          handleWebSocketMessage(data);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+          console.error('Raw message data:', rawData);
+          
+          // Only show error to user if it's not just empty/whitespace
+          if (rawData && rawData.trim()) {
+            setMessages(prev => [...prev, {
+              id: Date.now().toString(),
+              type: 'error',
+              content: `Failed to parse server message: ${rawData.substring(0, 100)}${rawData.length > 100 ? '...' : ''}`
+            }]);
           }
         }
       };
