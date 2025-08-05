@@ -84,7 +84,7 @@ const UsageTrackerComponent: React.FC = () => {
         onClick={() => setIsExpanded(!isExpanded)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
       >
-        <DollarSign className={`h-3 w-3 ${getIconColor()}`} />
+        <DollarSign className={`h-4 w-4 ${getIconColor()}`} />
         
         {isExpanded && (
           <>
