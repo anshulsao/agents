@@ -479,28 +479,101 @@ export function useChatSession() {
         const rawData = event.data.trim();
         if (!rawData) return;
 
+        // Handle concatenated JSON messages separated by various delimiters
         try {
-          const data = JSON.parse(rawData);
-          console.log('✅ Parsed WebSocket message:', data.type, data);
+          // Split by common delimiters that might separate JSON objects
+          const possibleMessages = rawData
+            .split(/[\n\r\0\x1e\x1f,]+/) // Split by newlines, null bytes, record separators, or commas
+            .map(msg => msg.trim())
+            .filter(msg => msg.length > 0 && (msg.startsWith('{') || msg.startsWith('"')));
 
-          // Handle pong responses
-          if (data.type === 'pong') {
-            return; // Just acknowledgment of our ping
+          // If no clear separators found, try to extract JSON objects manually
+          if (possibleMessages.length <= 1 && rawData.includes('}{')) {
+            const jsonObjects = [];
+            let currentJson = '';
+            let braceCount = 0;
+            let inString = false;
+            let escapeNext = false;
+
+            for (let i = 0; i < rawData.length; i++) {
+              const char = rawData[i];
+              
+              if (escapeNext) {
+                escapeNext = false;
+                currentJson += char;
+                continue;
+              }
+              
+              if (char === '\\') {
+                escapeNext = true;
+                currentJson += char;
+                continue;
+              }
+              
+              if (char === '"' && !escapeNext) {
+                inString = !inString;
+              }
+              
+              if (!inString) {
+                if (char === '{') {
+                  braceCount++;
+                } else if (char === '}') {
+                  braceCount--;
+                }
+              }
+              
+              currentJson += char;
+              
+              // Complete JSON object found
+              if (!inString && braceCount === 0 && currentJson.trim().startsWith('{')) {
+                jsonObjects.push(currentJson.trim());
+                currentJson = '';
+              }
+            }
+            
+            // Process extracted JSON objects
+            for (const jsonStr of jsonObjects) {
+              if (jsonStr) {
+                try {
+                  const data = JSON.parse(jsonStr);
+                  console.log('✅ Parsed WebSocket message:', data.type, data);
+                  
+                  if (data.type === 'pong') {
+                    continue; // Just acknowledgment of our ping
+                  }
+                  
+                  handleWebSocketMessage(data);
+                } catch (parseError) {
+                  console.error('Failed to parse extracted JSON:', parseError, jsonStr);
+                }
+              }
+            }
+          } else {
+            // Process normally split messages
+            for (const messageStr of possibleMessages) {
+              try {
+                const data = JSON.parse(messageStr);
+                console.log('✅ Parsed WebSocket message:', data.type, data);
+                
+                if (data.type === 'pong') {
+                  continue; // Just acknowledgment of our ping
+                }
+                
+                handleWebSocketMessage(data);
+              } catch (parseError) {
+                console.error('Failed to parse message:', parseError, messageStr);
+              }
+            }
           }
-
-          handleWebSocketMessage(data);
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
-          console.error('Raw message data:', rawData);
+          console.error('Failed to process WebSocket frame:', error);
+          console.error('Raw frame data:', rawData);
           
-          // Only show error to user if it's not just empty/whitespace
-          if (rawData && rawData.trim()) {
-            setMessages(prev => [...prev, {
-              id: Date.now().toString(),
-              type: 'error',
-              content: `Failed to parse server message: ${rawData.substring(0, 100)}${rawData.length > 100 ? '...' : ''}`
-            }]);
-          }
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'error',
+            content: `Failed to process server message: ${rawData.substring(0, 100)}${rawData.length > 100 ? '...' : ''}`
+          }]);
         }
       };
 
