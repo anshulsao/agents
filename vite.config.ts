@@ -23,6 +23,10 @@ export default defineConfig({
         ws: true,
         // Disable buffering which can cause message duplication
         buffer: false,
+        // Ensure WebSocket frames are not buffered or grouped
+        xfwd: false,
+        // Disable response buffering completely
+        selfHandleResponse: false,
         // Add retry logic and better connection handling
         agent: false,
         headers: {
@@ -58,6 +62,10 @@ export default defineConfig({
           // Handle WebSocket upgrade - simplified approach
           proxy.on('proxyReqWs', (proxyReq, req, socket, options, head) => {
             console.log('🔌 WebSocket upgrade:', proxyReq.path);
+            
+            // Disable any buffering at the WebSocket level
+            socket.setNoDelay(true);
+            socket.setKeepAlive(true, 0);
 
             const cookie = getCookie();
             if (cookie) {
@@ -68,6 +76,17 @@ export default defineConfig({
             // Ensure single connection by setting keep-alive
             proxyReq.setHeader('Connection', 'Upgrade');
             proxyReq.setHeader('Upgrade', 'websocket');
+            
+            // Disable any proxy-level buffering
+            proxyReq.setNoDelay(true);
+          });
+
+          // Handle WebSocket data to ensure no buffering
+          proxy.on('open', (proxySocket) => {
+            console.log('🔌 WebSocket proxy connection opened');
+            // Ensure immediate forwarding of WebSocket frames
+            proxySocket.setNoDelay(true);
+            proxySocket.setKeepAlive(true, 0);
           });
 
           // Enhanced error handling and response logging
