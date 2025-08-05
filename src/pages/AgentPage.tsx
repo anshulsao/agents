@@ -17,7 +17,6 @@ const AgentPage: React.FC = () => {
     sessionId,
     messages,
     sendMessage,
-    packets,
     selectAgent,
     confirmations,
     respondConfirmation,
@@ -184,7 +183,7 @@ const AgentPage: React.FC = () => {
         
         {showInspectPanel && (
           <InspectPanel 
-            packets={packets} 
+            packets={messages} 
             onClose={() => setShowInspectPanel(false)}
           />
         )}
