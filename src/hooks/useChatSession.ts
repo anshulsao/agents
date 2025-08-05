@@ -157,28 +157,38 @@ export function useChatSession() {
 
   // Tool group management
   const createToolGroup = useCallback(() => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type: 'tool_calls_group',
+      content: '',
+      tools: [],
+      summary: 'Executing'
+    };
+    
     setMessages(prev => {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        type: 'tool_calls_group',
-        content: '',
-        tools: [],
-        summary: 'Executing'
-      };
       toolGroupIndexRef.current = prev.length;
       return [...prev, newMessage];
     });
+    
+    return toolGroupIndexRef.current;
   }, []);
 
   const addToolToGroup = useCallback((toolCall: any) => {
-    if (toolGroupIndexRef.current === null) {
-      createToolGroup();
-      // We need to wait for the next render cycle to add the tool
-      setTimeout(() => addToolToGroup(toolCall), 0);
-      return;
-    }
-
     setMessages(prev => {
+      // If no group exists, create one and add the tool immediately
+      if (toolGroupIndexRef.current === null) {
+        const newMessage: Message = {
+          id: Date.now().toString(),
+          type: 'tool_calls_group',
+          content: '',
+          tools: [toolCall],
+          summary: 'Executing'
+        };
+        toolGroupIndexRef.current = prev.length;
+        return [...prev, newMessage];
+      }
+      
+      // Add to existing group
       const newMessages = [...prev];
       const groupMessage = newMessages[toolGroupIndexRef.current!];
 
@@ -191,7 +201,7 @@ export function useChatSession() {
       }
       return newMessages;
     });
-  }, [createToolGroup]);
+  }, []);
 
   const finalizeToolGroup = useCallback(() => {
     if (toolGroupIndexRef.current !== null) {
@@ -274,10 +284,8 @@ export function useChatSession() {
         break;
 
       case 'tool_call':
-        if (toolGroupIndexRef.current === null) {
-          createToolGroup();
-          updateStatus('Executing operations...');
-        }
+        // Always update status when we get a tool call
+        updateStatus('Executing operations...');
 
         let parsedArgs = data.payload.arguments;
         if (typeof parsedArgs === 'string') {
