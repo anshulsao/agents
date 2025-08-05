@@ -285,125 +285,189 @@ export function useChatSession() {
           const lines = event.data.split('\n').filter((line: string) => line.trim() !== '');
           
           for (const line of lines) {
-            const data = JSON.parse(line);
-            addPacket(data);
+            // Handle multiple concatenated JSON objects on a single line
+            let remainingContent = line.trim();
             
-            switch (data.type) {
-              case 'error':
-                finalizeToolGroup();
-                setMessages((prev) => [...prev, { 
-                  id: Date.now().toString(), 
-                  type: 'error', 
-                  content: data.payload?.message || data.message || 'An error occurred'
-                }]);
-                setIsBusy(false);
-                clearStatus();
-                break;
+            while (remainingContent.length > 0) {
+              try {
+                // Try to parse a JSON object from the beginning of the remaining content
+                let jsonEndIndex = -1;
+                let braceCount = 0;
+                let inString = false;
+                let escapeNext = false;
                 
-              case 'message': {
-                // Start new message if not streaming
-                if (streamingIndex.current === null) {
-                  finalizeToolGroup(); // Finalize any pending tool group
-                  updateStatus(`Typing...`);
-                  setMessages((prev) => {
-                    streamingIndex.current = prev.length;
-                    return [...prev, { 
-                      id: Date.now().toString(), 
-                      type: 'message', 
-                      content: data.payload.message 
-                    }];
-                  });
-                } else {
-                  // Continue streaming to existing message
-                  setMessages((prev) => {
-                    const msgs = [...prev];
-                    if (msgs[streamingIndex.current!]) {
-                      msgs[streamingIndex.current!].content += data.payload.message;
+                for (let i = 0; i < remainingContent.length; i++) {
+                  const char = remainingContent[i];
+                  
+                  if (escapeNext) {
+                    escapeNext = false;
+                    continue;
+                  }
+                  
+                  if (char === '\\') {
+                    escapeNext = true;
+                    continue;
+                  }
+                  
+                  if (char === '"') {
+                    inString = !inString;
+                    continue;
+                  }
+                  
+                  if (!inString) {
+                    if (char === '{') {
+                      braceCount++;
+                    } else if (char === '}') {
+                      braceCount--;
+                      if (braceCount === 0) {
+                        jsonEndIndex = i + 1;
+                        break;
+                      }
                     }
-                    return msgs;
-                  });
-                }
-                break;
-              }
-              
-              case 'reasoning': {
-                setMessages((prev) => {
-                  // Check if the last message is also a reasoning message
-                  const lastMessage = prev[prev.length - 1];
-                  if (lastMessage && lastMessage.type === 'reasoning') {
-                    // Append to existing reasoning message
-                    const updatedMessages = [...prev];
-                    updatedMessages[updatedMessages.length - 1] = {
-                      ...lastMessage,
-                      content: lastMessage.content + '\n\n' + data.payload.message
-                    };
-                    return updatedMessages;
-                  } else {
-                    // Create new reasoning message
-                    updateStatus('Thinking...');
-                    return [...prev, { 
-                      id: Date.now().toString(), 
-                      type: 'reasoning', 
-                      content: data.payload.message 
-                    }];
-                  }
-                });
-                break;
-              }
-             
-              case 'tool_call': {
-                let parsedArgs = data.payload.arguments;
-                if (typeof parsedArgs === 'string') {
-                  try {
-                    parsedArgs = JSON.parse(parsedArgs);
-                  } catch {
-                    // keep as string
                   }
                 }
                 
-                // Create tool group if it doesn't exist
-                if (toolGroupIndex.current === null) {
-                  createToolGroup();
-                  updateStatus('Executing operations...');
+                if (jsonEndIndex === -1) {
+                  // No complete JSON object found, try parsing the entire remaining content
+                  const data = JSON.parse(remainingContent);
+                  this.processWebSocketMessage(data);
+                  break;
+                } else {
+                  // Parse the complete JSON object
+                  const jsonString = remainingContent.substring(0, jsonEndIndex);
+                  const data = JSON.parse(jsonString);
+                  this.processWebSocketMessage(data);
+                  
+                  // Remove the parsed portion and any leading whitespace
+                  remainingContent = remainingContent.substring(jsonEndIndex).trim();
                 }
-                
-                // Add tool to the group immediately
-                addToolToGroup({
-                  name: data.payload.name,
-                  args: parsedArgs
-                });
+              } catch (parseError) {
+                console.error('Failed to parse JSON object:', parseError, 'Content:', remainingContent);
                 break;
               }
-              
-              case 'agent_update':
-                updateStatus(`Switched to ${data.payload.agent_name}`, true);
-                // Note: This would need to be updated to handle full agent objects
-                // For now, just update the name in the current agent
-                if (agentRef.current) {
-                  const updatedAgent = { ...agentRef.current, name: data.payload.agent_name };
-                  setCurrentAgent(updatedAgent);
-                  agentRef.current = updatedAgent;
-                }
-                break;
-                
-              case 'confirmation_request': {
-                finalizeToolGroup();
-                const { id, command } = data.payload;
-                setConfirmations((prev) => [...prev, { id, command }]);
-                updateStatus('Confirmation requested', true);
-                break;
-              }
-              
-              case 'end':
-                finalizeToolGroup();
-                setIsBusy(false);
-                clearStatus();
-                streamingIndex.current = null;
-                break;
-                
-              default:
-                break;
             }
+            
+            // Helper function to process individual WebSocket messages
+            const processWebSocketMessage = (data: any) => {
+              addPacket(data);
+              
+              switch (data.type) {
+                case 'error':
+                  finalizeToolGroup();
+                  setMessages((prev) => [...prev, { 
+                    id: Date.now().toString(), 
+                    type: 'error', 
+                    content: data.payload?.message || data.message || 'An error occurred'
+                  }]);
+                  setIsBusy(false);
+                  clearStatus();
+                  break;
+                  
+                case 'message': {
+                  // Start new message if not streaming
+                  if (streamingIndex.current === null) {
+                    finalizeToolGroup(); // Finalize any pending tool group
+                    updateStatus(`Typing...`);
+                    setMessages((prev) => {
+                      streamingIndex.current = prev.length;
+                      return [...prev, { 
+                        id: Date.now().toString(), 
+                        type: 'message', 
+                        content: data.payload.message 
+                      }];
+                    });
+                  } else {
+                    // Continue streaming to existing message
+                    setMessages((prev) => {
+                      const msgs = [...prev];
+                      if (msgs[streamingIndex.current!]) {
+                        msgs[streamingIndex.current!].content += data.payload.message;
+                      }
+                      return msgs;
+                    });
+                  }
+                  break;
+                }
+                
+                case 'reasoning': {
+                  setMessages((prev) => {
+                    // Check if the last message is also a reasoning message
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage && lastMessage.type === 'reasoning') {
+                      // Append to existing reasoning message
+                      const updatedMessages = [...prev];
+                      updatedMessages[updatedMessages.length - 1] = {
+                        ...lastMessage,
+                        content: lastMessage.content + '\n\n' + data.payload.message
+                      };
+                      return updatedMessages;
+                    } else {
+                      // Create new reasoning message
+                      updateStatus('Thinking...');
+                      return [...prev, { 
+                        id: Date.now().toString(), 
+                        type: 'reasoning', 
+                        content: data.payload.message 
+                      }];
+                    }
+                  });
+                  break;
+                }
+               
+                case 'tool_call': {
+                  let parsedArgs = data.payload.arguments;
+                  if (typeof parsedArgs === 'string') {
+                    try {
+                      parsedArgs = JSON.parse(parsedArgs);
+                    } catch {
+                      // keep as string
+                    }
+                  }
+                  
+                  // Create tool group if it doesn't exist
+                  if (toolGroupIndex.current === null) {
+                    createToolGroup();
+                    updateStatus('Executing operations...');
+                  }
+                  
+                  // Add tool to the group immediately
+                  addToolToGroup({
+                    name: data.payload.name,
+                    args: parsedArgs
+                  });
+                  break;
+                }
+                
+                case 'agent_update':
+                  updateStatus(`Switched to ${data.payload.agent_name}`, true);
+                  // Note: This would need to be updated to handle full agent objects
+                  // For now, just update the name in the current agent
+                  if (agentRef.current) {
+                    const updatedAgent = { ...agentRef.current, name: data.payload.agent_name };
+                    setCurrentAgent(updatedAgent);
+                    agentRef.current = updatedAgent;
+                  }
+                  break;
+                  
+                case 'confirmation_request': {
+                  finalizeToolGroup();
+                  const { id, command } = data.payload;
+                  setConfirmations((prev) => [...prev, { id, command }]);
+                  updateStatus('Confirmation requested', true);
+                  break;
+                }
+                
+                case 'end':
+                  finalizeToolGroup();
+                  setIsBusy(false);
+                  clearStatus();
+                  streamingIndex.current = null;
+                  break;
+                  
+                default:
+                  break;
+              }
+            };
           }
         } catch (err) {
           console.error('Failed to parse WebSocket message:', err);
