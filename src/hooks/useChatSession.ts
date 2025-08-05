@@ -470,11 +470,18 @@ export function useChatSession() {
       };
 
       socket.onmessage = (event) => {
+        console.log('🔍 Raw WebSocket frame received:', {
+          data: event.data,
+          length: event.data.length,
+          type: typeof event.data
+        });
+        
         const rawData = event.data.trim();
         if (!rawData) return;
 
         try {
           const data = JSON.parse(rawData);
+          console.log('✅ Parsed WebSocket message:', data.type, data);
 
           // Handle pong responses
           if (data.type === 'pong') {
