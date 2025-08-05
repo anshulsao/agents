@@ -332,7 +332,11 @@ export function useChatSession() {
         break;
 
       default:
-        console.warn('Unknown message type:', data.type);
+        // Silently ignore unknown message types to reduce noise
+        // Only log if it's not a known ignorable type
+        if (!['end'].includes(data.type)) {
+          console.warn('Unknown message type:', data.type);
+        }
         break;
     }
   }, [finalizeToolGroup, updateStatus, createToolGroup, addToolToGroup]);
