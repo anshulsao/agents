@@ -281,124 +281,129 @@ export function useChatSession() {
 
       socket.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          addPacket(data);
+          // Split by newlines and process each JSON object separately
+          const lines = event.data.split('\n').filter((line: string) => line.trim() !== '');
           
-          switch (data.type) {
-            case 'error':
-              finalizeToolGroup();
-              setMessages((prev) => [...prev, { 
-                id: Date.now().toString(), 
-                type: 'error', 
-                content: data.payload?.message || data.message || 'An error occurred'
-              }]);
-              setIsBusy(false);
-              clearStatus();
-              break;
-              
-            case 'message': {
-              // Start new message if not streaming
-              if (streamingIndex.current === null) {
-                finalizeToolGroup(); // Finalize any pending tool group
-                updateStatus(`Typing...`);
-                setMessages((prev) => {
-                  streamingIndex.current = prev.length;
-                  return [...prev, { 
-                    id: Date.now().toString(), 
-                    type: 'message', 
-                    content: data.payload.message 
-                  }];
-                });
-              } else {
-                // Continue streaming to existing message
-                setMessages((prev) => {
-                  const msgs = [...prev];
-                  if (msgs[streamingIndex.current!]) {
-                    msgs[streamingIndex.current!].content += data.payload.message;
-                  }
-                  return msgs;
-                });
-              }
-              break;
-            }
+          for (const line of lines) {
+            const data = JSON.parse(line);
+            addPacket(data);
             
-            case 'reasoning': {
-              setMessages((prev) => {
-                // Check if the last message is also a reasoning message
-                const lastMessage = prev[prev.length - 1];
-                if (lastMessage && lastMessage.type === 'reasoning') {
-                  // Append to existing reasoning message
-                  const updatedMessages = [...prev];
-                  updatedMessages[updatedMessages.length - 1] = {
-                    ...lastMessage,
-                    content: lastMessage.content + '\n\n' + data.payload.message
-                  };
-                  return updatedMessages;
+            switch (data.type) {
+              case 'error':
+                finalizeToolGroup();
+                setMessages((prev) => [...prev, { 
+                  id: Date.now().toString(), 
+                  type: 'error', 
+                  content: data.payload?.message || data.message || 'An error occurred'
+                }]);
+                setIsBusy(false);
+                clearStatus();
+                break;
+                
+              case 'message': {
+                // Start new message if not streaming
+                if (streamingIndex.current === null) {
+                  finalizeToolGroup(); // Finalize any pending tool group
+                  updateStatus(`Typing...`);
+                  setMessages((prev) => {
+                    streamingIndex.current = prev.length;
+                    return [...prev, { 
+                      id: Date.now().toString(), 
+                      type: 'message', 
+                      content: data.payload.message 
+                    }];
+                  });
                 } else {
-                  // Create new reasoning message
-                  updateStatus('Thinking...');
-                  return [...prev, { 
-                    id: Date.now().toString(), 
-                    type: 'reasoning', 
-                    content: data.payload.message 
-                  }];
+                  // Continue streaming to existing message
+                  setMessages((prev) => {
+                    const msgs = [...prev];
+                    if (msgs[streamingIndex.current!]) {
+                      msgs[streamingIndex.current!].content += data.payload.message;
+                    }
+                    return msgs;
+                  });
                 }
-              });
-              break;
-            }
-           
-            case 'tool_call': {
-              let parsedArgs = data.payload.arguments;
-              if (typeof parsedArgs === 'string') {
-                try {
-                  parsedArgs = JSON.parse(parsedArgs);
-                } catch {
-                  // keep as string
+                break;
+              }
+              
+              case 'reasoning': {
+                setMessages((prev) => {
+                  // Check if the last message is also a reasoning message
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage && lastMessage.type === 'reasoning') {
+                    // Append to existing reasoning message
+                    const updatedMessages = [...prev];
+                    updatedMessages[updatedMessages.length - 1] = {
+                      ...lastMessage,
+                      content: lastMessage.content + '\n\n' + data.payload.message
+                    };
+                    return updatedMessages;
+                  } else {
+                    // Create new reasoning message
+                    updateStatus('Thinking...');
+                    return [...prev, { 
+                      id: Date.now().toString(), 
+                      type: 'reasoning', 
+                      content: data.payload.message 
+                    }];
+                  }
+                });
+                break;
+              }
+             
+              case 'tool_call': {
+                let parsedArgs = data.payload.arguments;
+                if (typeof parsedArgs === 'string') {
+                  try {
+                    parsedArgs = JSON.parse(parsedArgs);
+                  } catch {
+                    // keep as string
+                  }
                 }
+                
+                // Create tool group if it doesn't exist
+                if (toolGroupIndex.current === null) {
+                  createToolGroup();
+                  updateStatus('Executing operations...');
+                }
+                
+                // Add tool to the group immediately
+                addToolToGroup({
+                  name: data.payload.name,
+                  args: parsedArgs
+                });
+                break;
               }
               
-              // Create tool group if it doesn't exist
-              if (toolGroupIndex.current === null) {
-                createToolGroup();
-                updateStatus('Executing operations...');
+              case 'agent_update':
+                updateStatus(`Switched to ${data.payload.agent_name}`, true);
+                // Note: This would need to be updated to handle full agent objects
+                // For now, just update the name in the current agent
+                if (agentRef.current) {
+                  const updatedAgent = { ...agentRef.current, name: data.payload.agent_name };
+                  setCurrentAgent(updatedAgent);
+                  agentRef.current = updatedAgent;
+                }
+                break;
+                
+              case 'confirmation_request': {
+                finalizeToolGroup();
+                const { id, command } = data.payload;
+                setConfirmations((prev) => [...prev, { id, command }]);
+                updateStatus('Confirmation requested', true);
+                break;
               }
               
-              // Add tool to the group immediately
-              addToolToGroup({
-                name: data.payload.name,
-                args: parsedArgs
-              });
-              break;
+              case 'end':
+                finalizeToolGroup();
+                setIsBusy(false);
+                clearStatus();
+                streamingIndex.current = null;
+                break;
+                
+              default:
+                break;
             }
-            
-            case 'agent_update':
-              updateStatus(`Switched to ${data.payload.agent_name}`, true);
-              // Note: This would need to be updated to handle full agent objects
-              // For now, just update the name in the current agent
-              if (agentRef.current) {
-                const updatedAgent = { ...agentRef.current, name: data.payload.agent_name };
-                setCurrentAgent(updatedAgent);
-                agentRef.current = updatedAgent;
-              }
-              break;
-              
-            case 'confirmation_request': {
-              finalizeToolGroup();
-              const { id, command } = data.payload;
-              setConfirmations((prev) => [...prev, { id, command }]);
-              updateStatus('Confirmation requested', true);
-              break;
-            }
-            
-            case 'end':
-              finalizeToolGroup();
-              setIsBusy(false);
-              clearStatus();
-              streamingIndex.current = null;
-              break;
-              
-            default:
-              break;
           }
         } catch (err) {
           console.error('Failed to parse WebSocket message:', err);
