@@ -10,7 +10,7 @@ const IntelligencePage: React.FC = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
         style={{
-          backgroundImage: `url('/bg.svg')`
+          backgroundImage: `url('./bg.svg')`
         }}
       />
       
@@ -46,7 +46,7 @@ const IntelligencePage: React.FC = () => {
           {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <FeatureCard
-              iconSrc="/kubernetes-expert.svg"
+              iconSrc="./kubernetes-expert.svg"
               title="Kubernetes Expert"
               description="Get instant root cause analysis, confident fixes, and proactive recommendations that turn Kubernetes confusion into smooth deployments."
               isActive={true}

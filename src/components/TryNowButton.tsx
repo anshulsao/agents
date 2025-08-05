@@ -18,7 +18,7 @@ const TryNowButton: React.FC<TryNowButtonProps> = ({
     <>
       <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
         <img 
-          src="/fi.svg" 
+          src="./fi.svg"
           alt="Fi Icon" 
           className="w-3.5 h-3.5 filter brightness-0 invert" 
         />

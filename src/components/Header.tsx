@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-2">
             <div className="p-1 bg-accent/10 rounded-lg">
               <img 
-                src="/fi.svg" 
+                src="./fi.svg"
                 alt="Fi Icon" 
                 className="h-4 w-5 filter brightness-0 invert" 
               />
