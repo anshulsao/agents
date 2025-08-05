@@ -207,6 +207,11 @@ const AgentPage: React.FC = () => {
               disabled={!(!showKubeConfig || clusterInfo.connected)}
               sendButtonDisabled={isBusy}
             />
+            <div className="text-center">
+              <p className="text-xs text-text-muted opacity-60">
+                Professional judgment recommended before relying on results.
+              </p>
+            </div>
           </div>
         </div>
       </footer>
