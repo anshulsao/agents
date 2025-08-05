@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Coins, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { getUserInfo, getUsageTracker, type UserInfo, type UsageTracker } from '../api/api';
 
 const UsageTrackerComponent: React.FC = () => {
@@ -84,18 +84,17 @@ const UsageTrackerComponent: React.FC = () => {
         onClick={() => setIsExpanded(!isExpanded)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-200 ${getBackgroundColor()}`}
       >
-        <Coins className={`h-3 w-3 ${getIconColor()}`} />
+        <DollarSign className={`h-3 w-3 ${getIconColor()}`} />
         
         {isExpanded && (
           <>
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-text-muted">Credits:</span>
               <span className={`font-medium ${getStatusColor()}`}>
-                {usage.used_amount.toFixed(3)}
+                {formatCurrency(usage.used_amount)}
               </span>
               <span className="text-text-muted">/</span>
               <span className="text-text-secondary">
-                {usage.plan.dollar_limit.toFixed(3)}
+                {formatCurrency(usage.plan.dollar_limit)}
               </span>
             </div>
 
