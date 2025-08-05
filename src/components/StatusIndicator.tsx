@@ -19,23 +19,26 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   // Always show status indicator, but content varies based on state
   
   // Show connection status if disconnected or reconnecting (only after first message)
-  if (hasSentFirstMessage && (!isConnected || reconnectAttempts > 0)) {
+  if (hasSentFirstMessage && !isConnected && reconnectAttempts > 0) {
     return (
       <div className="flex items-center gap-3 text-sm">
         <div className="flex items-center gap-2">
-          {reconnectAttempts > 0 ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-warning" />
-              <span className="font-medium text-warning">
-                Reconnecting... ({reconnectAttempts}/5)
-              </span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="h-4 w-4 text-error" />
-              <span className="font-medium text-error">Disconnected</span>
-            </>
-          )}
+          <Loader2 className="h-4 w-4 animate-spin text-warning" />
+          <span className="font-medium text-warning">
+            Reconnecting... ({reconnectAttempts}/5)
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show disconnected status only when not connected and not actively reconnecting
+  if (hasSentFirstMessage && !isConnected && reconnectAttempts === 0) {
+    return (
+      <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <WifiOff className="h-4 w-4 text-error" />
+          <span className="font-medium text-error">Disconnected</span>
         </div>
       </div>
     );

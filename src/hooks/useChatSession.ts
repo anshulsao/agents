@@ -126,6 +126,7 @@ export function useChatSession() {
 
   const resetReconnection = () => {
     setReconnectAttempts(0);
+    clearStatus(); // Clear reconnection status when resetting
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
@@ -263,6 +264,7 @@ export function useChatSession() {
         console.log('WebSocket connected');
         setIsConnected(true);
         resetReconnection();
+        clearStatus(); // Clear any reconnection status messages
         addPacket({ type: 'connect', url });
         
         if (initialMessage) {
