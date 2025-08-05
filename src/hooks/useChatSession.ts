@@ -439,7 +439,10 @@ export function useChatSession() {
         // Only attempt reconnection if it wasn't a normal closure and we have a session  
         if (ev.code !== 1000 && ev.code !== 1001 && sid && agent) {
           console.log('Attempting reconnection due to unexpected close:', ev.code);
-          attemptReconnect(sid, agent);
+          // Use the current sessionId and agent for reconnection
+          const currentSid = sessionId || sid;
+          const currentAgent = agentRef.current || agent;
+          attemptReconnect(currentSid, currentAgent);
         } else {
           console.log('Not attempting reconnection - normal closure or missing session/agent');
         }
