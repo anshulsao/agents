@@ -205,6 +205,7 @@ const AgentPage: React.FC = () => {
               ref={inputRef}
               onSend={sendMessage} 
               disabled={!(!showKubeConfig || clusterInfo.connected)}
+              sendButtonDisabled={isBusy}
             />
           </div>
         </div>

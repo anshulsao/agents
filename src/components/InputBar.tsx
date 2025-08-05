@@ -4,12 +4,14 @@ import { Send } from 'lucide-react';
 interface InputBarProps {
   onSend: (message: string) => void;
   disabled?: boolean;
+  sendButtonDisabled?: boolean;
   placeholder?: string;
 }
 
 const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({ 
   onSend, 
   disabled = false, 
+  sendButtonDisabled = false,
   placeholder = "Type your message..." 
 }, ref) => {
   const [text, setText] = useState('');
@@ -33,7 +35,7 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
 
   const send = () => {
     const msg = text.trim();
-    if (msg && !disabled) {
+    if (msg && !disabled && !sendButtonDisabled) {
       onSend(msg);
       setText('');
       
@@ -73,7 +75,7 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
         />
         
         <button
-          disabled={disabled || !text.trim()}
+          disabled={disabled || !text.trim() || sendButtonDisabled}
           className="absolute right-3 bottom-3 p-2.5 bg-accent hover:bg-accent-hover disabled:bg-surface disabled:text-text-muted text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:cursor-not-allowed disabled:hover:bg-surface"
           onClick={send}
         >
