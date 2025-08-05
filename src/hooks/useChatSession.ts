@@ -481,11 +481,16 @@ export function useChatSession() {
           handleWebSocketMessage(data);
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
-          setMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            type: 'error',
-            content: 'Invalid message received from server'
-          }]);
+          console.error('Raw message data:', event.data);
+          
+          // Only show error to user if it's not just empty/whitespace
+          if (event.data && event.data.trim()) {
+            setMessages(prev => [...prev, {
+              id: Date.now().toString(),
+              type: 'error',
+              content: `Failed to parse server message: ${event.data.substring(0, 100)}${event.data.length > 100 ? '...' : ''}`
+            }]);
+          }
         }
       };
 
