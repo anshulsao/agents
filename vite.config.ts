@@ -18,7 +18,17 @@ export default defineConfig({
         target: 'https://facetsdemo.console.facets.cloud',
         changeOrigin: true,
         secure: false,
+        timeout: 60000,
+        proxyTimeout: 60000,
         ws: true,
+        // Disable buffering which can cause message duplication
+        buffer: false,
+        // Add retry logic and better connection handling
+        agent: false,
+        headers: {
+          'Connection': 'keep-alive',
+          'Keep-Alive': 'timeout=60, max=1000'
+        },
         configure: (proxy, options) => {
           // Add cookie reading function
           const getCookie = () => {
@@ -54,6 +64,10 @@ export default defineConfig({
               proxyReq.setHeader('Cookie', cookie);
               console.log('✅ WS cookie added');
             }
+
+            // Ensure single connection by setting keep-alive
+            proxyReq.setHeader('Connection', 'Upgrade');
+            proxyReq.setHeader('Upgrade', 'websocket');
           });
 
           // Enhanced error handling and response logging
@@ -106,6 +120,10 @@ export default defineConfig({
                 proxyReq.setHeader('Cookie', cookie);
                 console.log('✅ HTTP cookie added for:', req.url);
               }
+              
+              // Add connection keep-alive headers
+              proxyReq.setHeader('Connection', 'keep-alive');
+              proxyReq.setHeader('Keep-Alive', 'timeout=60, max=1000');
             }
           });
         }
