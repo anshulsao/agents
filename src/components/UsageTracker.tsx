@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Coins, TrendingUp, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import { getUserInfo, getUsageTracker, type UserInfo, type UsageTracker } from '../api/api';
 
 const UsageTrackerComponent: React.FC = () => {
@@ -87,7 +87,7 @@ const UsageTrackerComponent: React.FC = () => {
         {isExpanded ? (
           <span className={`text-xs font-medium ${getIconColor()}`}>Credits</span>
         ) : (
-          <DollarSign className={`h-4 w-4 ${getIconColor()}`} />
+          <Coins className={`h-4 w-4 ${getIconColor()}`} />
         )}
         
         {isExpanded && (
