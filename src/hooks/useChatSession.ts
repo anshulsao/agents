@@ -148,6 +148,7 @@ export function useChatSession() {
       
       reconnectTimerRef.current = setTimeout(() => {
         console.log('Executing reconnection attempt');
+        // Don't call selectAgent during reconnection - just reconnect with existing session
         connectWebSocket(sid, agent, null);
       }, reconnectDelay * Math.pow(1.5, prev)); // Exponential backoff
       
@@ -226,25 +227,29 @@ export function useChatSession() {
   const selectAgent = (agent: AgentDetail) => {
     setCurrentAgent(agent);
     agentRef.current = agent;
-    setSessionId(null);
-    setMessages([]);
-    setPackets([]);
-    setConfirmations([]);
-    setIsConnected(false);
-    resetReconnection();
-    setHasSentFirstMessage(false);
-    clearStatus();
-    setIsBusy(false);
-    streamingIndex.current = null;
-    toolGroupIndex.current = null;
     
-    if (statusTimerRef.current) {
-      clearTimeout(statusTimerRef.current);
-      statusTimerRef.current = null;
-    }
-    if (ws.current) {
-      ws.current.close();
-      ws.current = null;
+    // Only reset session if we're actually changing agents
+    if (!currentAgent || currentAgent.name !== agent.name) {
+      setSessionId(null);
+      setMessages([]);
+      setPackets([]);
+      setConfirmations([]);
+      setIsConnected(false);
+      resetReconnection();
+      setHasSentFirstMessage(false);
+      clearStatus();
+      setIsBusy(false);
+      streamingIndex.current = null;
+      toolGroupIndex.current = null;
+      
+      if (statusTimerRef.current) {
+        clearTimeout(statusTimerRef.current);
+        statusTimerRef.current = null;
+      }
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
     }
   };
 
